@@ -1,0 +1,112 @@
+diff --git a/src/store/accountStore.ts b/src/store/accountStore.ts
+--- a/src/store/accountStore.ts
++++ b/src/store/accountStore.ts
+@@
+-    autorun(() => {
+-      if (this.getSelectedAccount?.activeLeague) {
+-        rootStore.uiStateStore.setSelectedPriceTableLeagueId(
+-          this.getSelectedAccount?.activeLeague.id
+-        );
+-      }
+-    });
++    autorun(() => {
++      if (this.getSelectedAccount?.activePriceLeague) {
++        rootStore.uiStateStore.setSelectedPriceTableLeagueId(
++          this.getSelectedAccount?.activePriceLeague.id
++        );
++      }
++    });
+@@
+-              // at initial launch, fetch prices for all leagues
+-              this.rootStore.priceStore.getPricesForLeagues(
+-                this.rootStore.leagueStore.priceLeagues.map((l) => l.id)
+-              );
++              const initialPriceLeagueId =
++                this.getSelectedAccount.activeProfile?.activePriceLeagueId ||
++                this.rootStore.leagueStore.priceLeagues[0]?.id;
++
++              if (initialPriceLeagueId) {
++                this.rootStore.priceStore.ensurePricesForLeague(initialPriceLeagueId);
++              }
+diff --git a/src/store/priceStore.ts b/src/store/priceStore.ts
+--- a/src/store/priceStore.ts
++++ b/src/store/priceStore.ts
+@@
+   getLeaguePriceSource(leaguePriceDetails: LeaguePriceDetails) {
+@@
+     return leaguePriceSource;
+   }
++
++  @action
++  ensurePricesForLeague(leagueId: string, force: boolean = false) {
++    if (!leagueId || (this.isUpdatingPrices && !force)) {
++      return;
++    }
++
++    const leaguePriceDetails = this.getLeaguePriceDetails(leagueId);
++    const leaguePriceSource = this.getLeaguePriceSource(leaguePriceDetails);
++    const fetchedRecently = leaguePriceSource.pricedFetchedAt
++      ? moment(leaguePriceSource.pricedFetchedAt)
++          .utc()
++          .isAfter(moment().utc().subtract(this.pollingIntervalMinutes, 'minutes'))
++      : false;
++
++    if (!force && leaguePriceSource.prices.length > 0 && fetchedRecently) {
++      return;
++    }
++
++    this.getPricesForLeagues([leagueId]);
++  }
+ 
+   @action
+   getPricesForLeagues(leagueIds: string[]) {
+diff --git a/src/store/domains/profile.ts b/src/store/domains/profile.ts
+--- a/src/store/domains/profile.ts
++++ b/src/store/domains/profile.ts
+@@
+   @action
+   checkPriceStatus() {
+-    // fetch prices if they are outdated
+     if (this.activePriceLeagueId) {
+-      const leaguePriceDetails = rootStore.priceStore.getLeaguePriceDetails(
+-        this.activePriceLeagueId
+-      );
+-      const leaguePriceSource = rootStore.priceStore.getLeaguePriceSource(leaguePriceDetails);
+-
+-      const twentyMinutesAgo = moment()
+-        .utc()
+-        .subtract(rootStore.priceStore.pollingIntervalMinutes, 'minutes');
+-      const fetchedRecently = moment(leaguePriceSource.pricedFetchedAt)
+-        .utc()
+-        .isAfter(twentyMinutesAgo);
+-
+-      if (!fetchedRecently) {
+-        rootStore.priceStore.getPricesForLeagues([this.activePriceLeagueId]);
+-      }
++      rootStore.priceStore.ensurePricesForLeague(this.activePriceLeagueId);
+     }
+   }
+diff --git a/src/components/price-table/price-table-league-dropdown/PriceTableLeagueDropdownContainer.tsx b/src/components/price-table/price-table-league-dropdown/PriceTableLeagueDropdownContainer.tsx
+--- a/src/components/price-table/price-table-league-dropdown/PriceTableLeagueDropdownContainer.tsx
++++ b/src/components/price-table/price-table-league-dropdown/PriceTableLeagueDropdownContainer.tsx
+@@
+-  const { uiStateStore, leagueStore, accountStore } = useStores();
++  const { uiStateStore, leagueStore, accountStore, priceStore } = useStores();
+@@
+-  useEffect(() => {
+-    if (!leagueId) {
+-      uiStateStore!.setSelectedPriceTableLeagueId(activeLeagueId || '');
+-    }
+-  }, []);
++  useEffect(() => {
++    const selectedLeagueId = leagueId || activeLeagueId || '';
++    if (selectedLeagueId) {
++      uiStateStore!.setSelectedPriceTableLeagueId(selectedLeagueId);
++      priceStore!.ensurePricesForLeague(selectedLeagueId);
++    }
++  }, [activeLeagueId, leagueId, priceStore, uiStateStore]);
+@@
+   const onSubmit = (form: PriceTableFilterForm) => {
+     uiStateStore!.setSelectedPriceTableLeagueId(form.priceLeague);
++    priceStore!.ensurePricesForLeague(form.priceLeague);
+   };
