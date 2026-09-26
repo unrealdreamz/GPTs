@@ -1,0 +1,4 @@
+node_modules/
+.env
+*.blend1
+blender/previews/

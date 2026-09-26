@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>九喇嘛 · Kurama</title>
+  <meta name="description" content="Talk to Kurama, the Nine-Tailed Fox sealed inside you. Fan project.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Noto+Serif+JP:wght@700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/vendor/three/build/three.module.js",
+        "three/addons/": "/vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Kurama behind the seal cage"></canvas>
+  <div id="vignette" aria-hidden="true"></div>
+  <div id="flash" aria-hidden="true"></div>
+
+  <!-- top HUD -->
+  <header id="hud">
+    <div class="bond" title="Bond (絆) — how much Kurama respects you">
+      <span class="bond-kanji">絆</span>
+      <div class="bond-bar"><div class="bond-fill"></div></div>
+      <span class="bond-num">0</span>
+    </div>
+    <div class="hud-right">
+      <span class="chip" id="chip-claude" title="Conversation engine">…</span>
+      <span class="chip" id="chip-voice" title="Voice engine">…</span>
+      <button class="icon-btn" id="btn-log" title="Conversation log" aria-label="Conversation log">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h16M4 15h10M4 20h7"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-settings" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M5.2 18.8l2.1-2.1M16.7 7.3l2.1-2.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- subtitles -->
+  <section id="subtitles" aria-live="polite">
+    <p class="ja" lang="ja"></p>
+    <p class="en"></p>
+  </section>
+
+  <div id="thinking" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div id="toast" role="status"></div>
+
+  <!-- input -->
+  <form id="chat" autocomplete="off">
+    <button type="button" class="icon-btn mic" id="btn-mic" title="Hold to talk (or click to toggle)" aria-label="Speak">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>
+    </button>
+    <input id="msg" type="text" maxlength="600" placeholder="Speak to the fox…  (English or 日本語)" aria-label="Message to Kurama">
+    <button type="submit" class="send" id="btn-send" aria-label="Send">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </form>
+
+  <!-- conversation log -->
+  <aside id="log" class="panel" aria-label="Conversation log" hidden>
+    <div class="panel-head"><h2>記録 <small>Log</small></h2><button class="icon-btn close" data-close="log" aria-label="Close">×</button></div>
+    <ol class="log-list"></ol>
+  </aside>
+
+  <!-- settings -->
+  <aside id="settings" class="panel" aria-label="Settings" hidden>
+    <div class="panel-head"><h2>設定 <small>Settings</small></h2><button class="icon-btn close" data-close="settings" aria-label="Close">×</button></div>
+    <div class="panel-body">
+      <label>Your name <input id="set-name" type="text" maxlength="40" placeholder="e.g. Naruto"></label>
+      <fieldset class="seg" id="set-era">
+        <legend>Era</legend>
+        <label><input type="radio" name="era" value="caged"><span>Caged <em>封印</em></span></label>
+        <label><input type="radio" name="era" value="partner"><span>Partner <em>相棒</em></span></label>
+      </fieldset>
+      <fieldset class="seg" id="set-subs">
+        <legend>Subtitles</legend>
+        <label><input type="radio" name="subs" value="both"><span>JA + EN</span></label>
+        <label><input type="radio" name="subs" value="en"><span>English</span></label>
+        <label><input type="radio" name="subs" value="ja"><span>日本語</span></label>
+      </fieldset>
+      <fieldset class="seg" id="set-voice">
+        <legend>Voice</legend>
+        <label><input type="radio" name="voice" value="auto"><span>Auto</span></label>
+        <label><input type="radio" name="voice" value="voicevox"><span>VOICEVOX</span></label>
+        <label><input type="radio" name="voice" value="browser"><span>Browser</span></label>
+        <label><input type="radio" name="voice" value="off"><span>Off</span></label>
+      </fieldset>
+      <label class="range">Voice depth <input id="set-depth" type="range" min="0.78" max="1" step="0.01"><output></output></label>
+      <label class="range">Demon layer <input id="set-demon" type="range" min="0" max="1" step="0.05"><output></output></label>
+      <label class="range">Volume <input id="set-volume" type="range" min="0" max="1" step="0.05"><output></output></label>
+      <label class="range">Ambience <input id="set-ambience" type="range" min="0" max="1" step="0.05"><output></output></label>
+      <fieldset class="seg" id="set-mic">
+        <legend>Microphone language</legend>
+        <label><input type="radio" name="mic" value="en-US"><span>English</span></label>
+        <label><input type="radio" name="mic" value="ja-JP"><span>日本語</span></label>
+      </fieldset>
+      <button type="button" class="danger" id="btn-reset">Forget this conversation</button>
+      <p class="fine">Fan project. Naruto &amp; Kurama © Masashi Kishimoto / Shueisha / Studio Pierrot. Voice: VOICEVOX:青山龍星 (processed). Not affiliated with any of them.</p>
+    </div>
+  </aside>
+
+  <!-- intro -->
+  <div id="intro">
+    <div class="intro-card">
+      <div class="seal-mark" aria-hidden="true">封</div>
+      <h1><span lang="ja">九喇嘛</span> KURAMA</h1>
+      <p class="tagline">The Nine-Tailed Fox is sealed inside you. Walk into the dark and speak to him.</p>
+      <form id="intro-form">
+        <label>Jinchūriki name <input id="intro-name" type="text" maxlength="40" placeholder="Naruto"></label>
+        <fieldset class="seg" id="intro-era">
+          <legend>Which Kurama?</legend>
+          <label><input type="radio" name="intro-era" value="caged" checked><span>Caged — hostile <em>封印</em></span></label>
+          <label><input type="radio" name="intro-era" value="partner"><span>Partner — after the war <em>相棒</em></span></label>
+        </fieldset>
+        <button type="submit" id="intro-enter" disabled>Loading…</button>
+      </form>
+      <p class="status" id="intro-status">Summoning…</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

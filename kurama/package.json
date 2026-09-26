@@ -1,0 +1,17 @@
+{
+  "name": "kurama-mindscape",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Talking 3D Kurama (Nine-Tailed Fox) fan project: Claude-driven persona, VOICEVOX speech, three.js front-end.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "three": "^0.186.1"
+  }
+}
