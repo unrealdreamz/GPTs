@@ -79,12 +79,15 @@ function switchToDemo(reason) {
   claude.reason = reason;
 }
 
+// Server-side refusal fallbacks are offered for the Opus 5 / Fable 5 families; other models
+// (e.g. CLAUDE_MODEL=claude-sonnet-5) get the same request without them.
+const USE_FALLBACKS = /^claude-(opus-5|fable-5)/.test(MODEL) && process.env.KURAMA_FALLBACKS !== "0";
+
 async function callClaude(messages) {
   const response = await getClient().beta.messages.create({
     model: MODEL,
     max_tokens: 2000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
+    ...(USE_FALLBACKS ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" } : {}),
     system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
     output_config: { effort: "low", format: { type: "json_schema", schema: REPLY_SCHEMA } },
     messages,

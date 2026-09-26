@@ -1,6 +1,9 @@
 # GPTs
 This repo collects leaked prompts of GPTs.
 
+## Projects
+- [九喇嘛 Kurama](./kurama/): an interactive 3D Nine-Tailed Fox, built in Blender, that you talk to as his jinchūriki. He answers in Japanese with a deep beast voice and English subtitles.
+
 ## Prompts of GPTs
 - [DevRel Guide](./prompts/devrelguide.md) by Rohit Ghumare
 - [Istio Guru](./prompts/IstioGuru.md) by Rohit Ghumare

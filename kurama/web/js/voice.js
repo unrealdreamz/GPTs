@@ -101,7 +101,7 @@ export class Voice {
     this.reverb = ctx.createConvolver();
     this.reverb.buffer = impulse(ctx);
     this.reverbSend = ctx.createGain();
-    this.reverbSend.gain.value = 0.24;
+    this.reverbSend.gain.value = 0.2;
     this.reverbSend.connect(this.reverb).connect(this.master);
 
     // voice bus
@@ -153,9 +153,12 @@ export class Voice {
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
     this.master.gain.setTargetAtTime(this.settings.volume, now, 0.05);
-    this.subGain.gain.setTargetAtTime(0.55 * this.settings.demon, now, 0.05);
-    this.growl.gain.setTargetAtTime(0.08 + 0.2 * this.settings.demon, now, 0.05);
-    if (this.ambGain) this.ambGain.gain.setTargetAtTime(0.9 * this.settings.ambience, now, 0.2);
+    this.subGain.gain.setTargetAtTime(0.45 * this.settings.demon, now, 0.05);
+    this.growl.gain.setTargetAtTime(0.05 + 0.14 * this.settings.demon, now, 0.05);
+    if (this.ambGain) {
+      this.ambGain.gain.setTargetAtTime(0.9 * this.settings.ambience, now, 0.2);
+      this.ambSend.gain.setTargetAtTime(0.9 * this.settings.ambience, now, 0.2);
+    }
   }
 
   /** Mouth opening now (0..1), combining the viseme timeline and the actual loudness. */
@@ -312,6 +315,9 @@ export class Voice {
     this.ambGain = ctx.createGain();
     this.ambGain.gain.value = 0;
     this.ambGain.connect(this.master);
+    this.ambSend = ctx.createGain();          // ambience's share of the reverb
+    this.ambSend.gain.value = 0;
+    this.ambSend.connect(this.reverbSend);
 
     // low drone of the seal
     const drone = ctx.createGain(); drone.gain.value = 0.05;
@@ -361,7 +367,7 @@ export class Voice {
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
       o.connect(g);
       g.connect(this.ambGain);
-      g.connect(this.reverbSend);
+      g.connect(this.ambSend);
       o.start(t); o.stop(t + 0.2);
       setTimeout(drip, 1500 + Math.random() * 5500);
     };

@@ -73,7 +73,7 @@ export function sampleTimeline(tl, t) {
     if (tl[mid].t <= t) lo = mid; else hi = mid - 1;
   }
   const seg = tl[lo];
-  if (t > seg.t + seg.d) return 0;
+  if (t < seg.t || t > seg.t + seg.d) return 0;
   const k = (t - seg.t) / Math.max(seg.d, 1e-3);
   const cur = (OPEN[seg.s] ?? 0) * (seg.w ?? 1);
   const next = tl[lo + 1] ? (OPEN[tl[lo + 1].s] ?? 0) * (tl[lo + 1].w ?? 1) : 0;

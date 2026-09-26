@@ -5,7 +5,7 @@ const KEY = 'kurama.v1';
 const DEFAULTS = {
   profile: { name: '', era: 'caged', bond: 0 },
   settings: {
-    subs: 'both', voice: 'auto', depth: 0.88, demon: 0.55, volume: 0.9, ambience: 0.55, mic: 'en-US',
+    subs: 'both', voice: 'auto', depth: 0.89, demon: 0.45, volume: 0.9, ambience: 0.5, mic: 'en-US',
   },
   history: [],     // [{ role: 'user'|'assistant', content }] — assistant content is the raw JSON reply
   log: [],         // [{ who: 'you'|'kurama', text?, ja?, en? }]

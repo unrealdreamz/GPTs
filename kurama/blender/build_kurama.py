@@ -360,7 +360,8 @@ def build_body():
     b.ellipsoid(L["hips"] + V((0, 0.1, 0.05)), (1.45, 1.35, 1.12), T(hips=1.0))
     b.ellipsoid(L["spine"] + V((0, 0, 0.1)), (1.38, 1.3, 1.18), T(spine=1.0, hips=0.3))
     b.ellipsoid(L["chest"] + V((0, 0.05, 0.1)), (1.55, 1.2, 1.35), T(chest=1.0, spine=0.25))
-    b.ellipsoid(L["chest"] + V((0, -0.55, -0.35)), (1.15, 0.8, 0.95), T(chest=1.0))  # chest front / pecs
+    for s in (1, -1):                                                                 # pecs (centre crease)
+        b.ellipsoid(L["chest"] + V((0.5 * s, -0.55, -0.3)), (0.74, 0.78, 0.92), T(chest=1.0))
     # neck root (the head mesh brings the rest of the neck)
     b.capsule(L["chest"] + V((0, -0.2, 0.4)), L["neck"] + V((0, -0.1, 0.25)), 0.95, T(chest=0.6, neck=0.4))
     # tail base mound
@@ -497,6 +498,7 @@ def build_head(jaw_profile):
 
     obj = b.build(COL_KURAMA, decimate=0.45, keep=keep, cull=BLOBS.get("body"))
     b.weights(obj)
+    BLOBS["head"] = b
 
     def col(co, n):
         p = to_head(co)
@@ -524,8 +526,8 @@ def build_jaw():
     E((0, -1.70, -0.44), (0.40, 0.56, 0.23))
     E((0, -2.30, -0.40), (0.26, 0.46, 0.19))
     for s in (1, -1):
-        E((0.44 * s, -0.62, -0.36), (0.28, 0.55, 0.3))     # jaw hinge mass
-    obj = b.build(COL_KURAMA, decimate=0.35, keep=lambda co: smoothstep(-0.5, -0.3, to_head(co).z))
+        E((0.42 * s, -0.78, -0.38), (0.27, 0.42, 0.28))    # jaw hinge mass (kept in front of the pivot)
+    obj = b.build(COL_KURAMA, decimate=0.6, keep=lambda co: smoothstep(-0.5, -0.3, to_head(co).z))
     single_bone_weights(obj, "jaw")
 
     def col(co, n):
@@ -917,6 +919,23 @@ def build_spikes():
         el = side(L["elbow"], s)
         for k, (dz, ln) in enumerate(((0.45, 0.85), (0.1, 0.7))):
             spike(el + V((0.4 * s, 0.3, dz)), V((0.45 * s, 1.0, 0.1)), ln, 0.26, "upperarm" + sfx, bend=V((0, 0, 0.12)))
+    # chest ruff: two staggered rows of tufts under the throat, rooted on the actual surface
+    def surface(x, z):
+        for i in range(300):
+            y = -3.5 + i * 0.02
+            p = V((x, y, z))
+            if any(BLOBS[k].inside(p) for k in ("body", "head") if k in BLOBS):
+                return p
+        return None
+
+    for row, (z, xs, ln) in enumerate(((3.45, (-0.62, -0.21, 0.21, 0.62), 0.78), (2.85, (-0.82, -0.41, 0.0, 0.41, 0.82), 0.72))):
+        for x in xs:
+            p = surface(x, z)
+            if p is None:
+                continue
+            base = p + V((0, 0.18, 0.05))
+            spike(base, V((x * 0.35, -0.55, -1.0)), ln - abs(x) * 0.12, 0.27, "neck" if row == 0 else "chest",
+                  bend=V((0, -0.12, 0.0)))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     obj = mesh_from_bmesh("Kurama_Fur", bm, COL_KURAMA)
     assign_weights(obj, [{g: 1.0} for g in groups])
