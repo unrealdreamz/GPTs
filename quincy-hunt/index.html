@@ -50,6 +50,10 @@ button:focus-visible{box-shadow:0 0 0 2px var(--bone)}
 .card span.n{align-self:flex-start;font-weight:700;font-size:13px;border:1px solid var(--line);padding:0 7px;border-radius:3px;color:var(--bone)}
 .say{max-width:720px;width:100%;background:var(--veil);border:1px solid var(--line);padding:18px 22px;display:flex;flex-direction:column;gap:8px;margin-bottom:5vh;text-align:left;cursor:pointer}
 .say .lede{font-size:20px;max-width:none;color:var(--bone)}
+.card .rk{font-size:14.5px;line-height:1.3}.card .rk.had{opacity:.55}.card .rk.now{color:var(--bone);font-weight:600}.card .rk.later{opacity:.42;font-size:13px}
+.card .pth{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--c,var(--gold));margin-top:4px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 20px;max-width:940px;width:100%;text-align:left;font-size:14px;line-height:1.35}
+.build span{text-align:left}
 .stats{display:grid;grid-template-columns:repeat(4,auto);gap:4px 34px;font-variant-numeric:tabular-nums}
 .stats b{font-family:var(--display);font-size:clamp(22px,4vw,34px);color:var(--bone);display:block}
 .stats span{font-size:13px;letter-spacing:.24em;text-transform:uppercase}
@@ -137,6 +141,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
   <div class="ov veil" id="pause" hidden>
     <h2>Paused</h2>
     <div class="build" id="build"></div>
+    <div class="eyebrow">What the desert leaves behind</div>
+    <div class="legend" id="legend"></div>
     <div class="best">I gear · C character · X skill trees · J Jagdbuch · Q E R skills · V Seele Schneider · F Letzt Stil</div>
     <div class="vol"><label for="vm">Music <input type="range" id="vm" min="0" max="100"></label><label for="vs">Effects <input type="range" id="vs" min="0" max="100"></label><label for="glow"><input type="checkbox" id="glow"> Glow</label></div>
     <div class="row"><button id="resume">Resume</button><button class="ghost" id="quit">Abandon hunt</button></div>
@@ -452,12 +458,12 @@ function fire(c,forcePerfect){const full=c>=1,perfect=forcePerfect||(full&&G.t-G
   const bx=G.px+Math.cos(G.aim)*24,by=G.py+Math.sin(G.aim)*24;
   if(full){ring(bx,by,6,perfect?90:54,.25,perfect?'#ffffff':'#8fd8ff',perfect?5:3);for(let i=0;i<(perfect?18:9);i++){const a=G.aim+Math.PI+rand(-.9,.9);part(bx,by,Math.cos(a)*rand(60,300),Math.sin(a)*rand(60,300),rand(.2,.5),rand(2,5),'#8fd8ff')}}
   if(perfect&&!forcePerfect){text(G.px,G.py-34,'PERFEKT','#ffffff',22,.8);G.reishi=Math.min(S.rmax,G.reishi+4)}}
-function dashEnd(){const n=S.sprung?16:G.sch==='~'?10:0;if(!n)return;const o=rand(TAU);for(let k=0;k<n;k++){const a=o+k/n*TAU;
-    G.arrows.push({x:G.px,y:G.py,vx:Math.cos(a)*1100,vy:Math.sin(a)*1100,dmg:(S.sprung?26:15)*S.dmg,pierce:S.sprung?1:0,r:4,len:20,life:.45,hit:[],rico:0,kills:0,kind:3})}ring(G.px,G.py,8,80,.2,'#bfe9ff',3);A.rain()}
+function dashEnd(){const n=S.sprung?4+4*S.sprung:0;if(!n)return;const o=rand(TAU);for(let k=0;k<n;k++){const a=o+k/n*TAU;
+    G.arrows.push({x:G.px,y:G.py,vx:Math.cos(a)*1100,vy:Math.sin(a)*1100,dmg:20*S.dmg,pierce:S.sprung>=3?9:0,r:4,len:20,life:.45,hit:[],rico:0,kills:0,kind:3})}ring(G.px,G.py,8,80,.2,'#bfe9ff',3);A.rain()}
 function armorMul(e,a){if(e.type!=='armor')return 1;if(a.full)return 1.6;if(Math.random()<.35)text(e.x,e.y-e.r-18,'KLANG','#9aa3bd',12,.4);return .25}
 function blast(x,y,R,dmg,except){ring(x,y,10,R,.28,'#bfe9ff',6);burst(x,y,22,380,.4,5,'#8fd8ff');G.shake=Math.max(G.shake,7);
   for(const o of G.enemies.slice())if(o!==except&&!o.hidden&&o.hp>0&&Math.hypot(o.x-x,o.y-y)<R+o.r)hitEnemy(o,dmg,{vx:o.x-x,vy:o.y-y,kills:0,blast:true},false)}
-function hurt(d){if(G.inv>0||G.dashT>0||G.state!=='play')return;if(antithesis())return;d*=S.dr*(G.ultT>0?.5:1)*(mouse.l||mouse.r?1:.6);G.hp-=d;G.inv=.75;G.shake=Math.max(G.shake,12);G.hurtFlash=.5;G.combo=0;A.hurt();
+function hurt(d){if(G.inv>0||G.dashT>0||G.state!=='play')return;if(antithesis())return;d*=S.dr*(G.ultT>0?.5:1)*(mouse.l||mouse.r?1:(S.veneK||.6));G.hp-=d;G.inv=.75;G.shake=Math.max(G.shake,12);G.hurtFlash=.5;G.combo=0;A.hurt();
   burst(G.px,G.py,14,220,.5,4,'#ff5a70');onHurt();if(G.hp<=0&&!revive())die()}
 function die(){G.hp=0;setState('dead');onDeath();A.intensity=0;burst(G.px,G.py,60,400,1.2,5,'#bfe9ff');
   const sc=Math.round(G.score),nb=sc>best.score;if(nb){best={score:sc,time:G.t|0,kills:G.kills};try{localStorage.setItem('quincyhunt.best',JSON.stringify(best))}catch(e){}}
@@ -618,7 +624,7 @@ function update(dt){
   const ult=G.ultT>0,drawing=mouse.l&&!ult;
   if(G.dashT>0){G.dashT-=dt;G.px+=G.ddx*1750*dt;G.py+=G.ddy*1750*dt;G.after.push({x:G.px,y:G.py,a:G.aim,life:.25});
     if(S.slice)for(const e of G.enemies)if(!e.hidden&&!G.dashHit.includes(e.id)&&Math.hypot(e.x-G.px,e.y-G.py)<e.r+34){G.dashHit.push(e.id);G.reishi=Math.min(S.rmax,G.reishi+4);
-      ring(e.x,e.y,4,50,.2,'#ffffff',3);hitEnemy(e,45*S.slice*S.dmg,{vx:G.ddx,vy:G.ddy},true);if(S.sprung&&e.hp<=0)G.dashes=Math.min(S.dashMax,G.dashes+1)}if(G.dashT<=0)dashEnd()}
+      ring(e.x,e.y,4,50,.2,'#ffffff',3);hitEnemy(e,45*S.slice*S.dmg,{vx:G.ddx,vy:G.ddy},true);if(S.dashRefund&&e.hp<=0)G.dashes=Math.min(S.dashMax,G.dashes+1)}if(G.dashT<=0)dashEnd()}
   else{const sp=S.spd*(drawing?.72:1)*(ult?1.25:1),ak=Math.min(1,dt*(ml?12:4.5));G.vx+=(mx*sp-G.vx)*ak;G.vy+=(my*sp-G.vy)*ak;G.px+=G.vx*dt;G.py+=G.vy*dt;if(ml){G.walk+=dt*10;G.stepAcc+=sp*dt;if(G.stepAcc>28){G.stepAcc=0;G.foot=-G.foot;G.prints.push({x:G.px-my*5*G.foot,y:G.py+mx*5*G.foot+6,a:Math.atan2(my,mx),life:5});if(G.prints.length>50)G.prints.shift()}}}
   if(G.dashes<S.dashMax){G.dashCd+=dt;if(G.dashCd>=S.dashRe){G.dashCd=0;G.dashes++}}
   if(G.inv>0)G.inv-=dt;if(G.hurtFlash>0)G.hurtFlash-=dt;if(G.flash>0)G.flash-=dt;if(G.shotCd>0)G.shotCd-=dt;
@@ -1427,22 +1433,22 @@ const _os5=onSpawn;onSpawn=function(e){_os5(e);if(COMMON[e.type]){const t=G.t,hm
 const _de5=dashEnd;dashEnd=function(){_de5();G.stepT=.7;G.vx=G.ddx*S.spd*1.4;G.vy=G.ddy*S.spd*1.4};
 
 /* ---------- the bow: draw, hold, overdraw ---------- */
-fire=function(c,forced){const full=c>=1,tier=forced?1:full?Math.min(2,Math.floor(G.over)):0;G.over=0;
-  const base=full?[60,115,190][tier]*S.chargeM:12+28*c,pierce=(full?2+tier*2:c>=.5?1:0)+S.pierce,spd=(full?1900:1250+500*c)*S.aspd,n=1+S.multi,sm=(1+G.soul)*(1+.1*tierS());
+fire=function(c,forced){const full=c>=1,tier=forced?1:full?Math.min(S.overCap||2,Math.floor(G.over)):0;G.over=0;
+  const base=full?[60,115,190,300][tier]*S.chargeM:12+28*c,pierce=(full?2+tier*2:c>=.5?1:0)+S.pierce,spd=(full?1900:1250+500*c)*S.aspd,n=1+S.multi,sm=(1+G.soul)*(1+.1*tierS());
   const shots=S.u.u_echo&&full&&!forced&&++G.echoN>=4?(G.echoN=0,2):1;
   for(let s=0;s<shots;s++)for(let i=0;i<n;i++){const off=(i-(n-1)/2)*.1+s*.03,a=G.aim+off,side=n>1&&Math.abs(off)>.01;
-    G.arrows.push({x:G.px+Math.cos(G.aim)*18,y:G.py+Math.sin(G.aim)*18,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:base*S.dmg*sm*(side?.6:1),pierce,r:full?9+tier*4:5,len:full?54+tier*28:26,life:1.5,hit:[],full,tier,perfect:tier>0,rico:S.rico,expl:full&&S.expl>0,kills:0,kind:0,ox:G.px,oy:G.py})}
+    G.arrows.push({x:G.px+Math.cos(G.aim)*18,y:G.py+Math.sin(G.aim)*18,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:base*S.dmg*sm*(side?(S.sideM||.6):1),pierce,r:full?9+tier*4:5,len:full?54+tier*28:26,life:1.5,hit:[],full,tier,perfect:tier>0,rico:S.rico,expl:full&&S.expl>0,kills:0,kind:0,ox:G.px,oy:G.py})}
   A.shoot(c,tier>0);if(full){const k=10+tier*9;G.kickX-=Math.cos(G.aim)*k;G.kickY-=Math.sin(G.aim)*k}
-  if(tier===2&&S.lanze&&!forced){const lx=G.px+Math.cos(G.aim)*20,ly=G.py+Math.sin(G.aim)*20,ex=lx+Math.cos(G.aim)*1500,ey=ly+Math.sin(G.aim)*1500,src={vx:Math.cos(G.aim),vy:Math.sin(G.aim),kills:0};
+  if(tier>=2&&S.lanze&&!forced){const lx=G.px+Math.cos(G.aim)*20,ly=G.py+Math.sin(G.aim)*20,ex=lx+Math.cos(G.aim)*1500,ey=ly+Math.sin(G.aim)*1500,src={vx:Math.cos(G.aim),vy:Math.sin(G.aim),kills:0};
     for(const e of G.enemies.slice())if(!e.hidden&&segHit(lx,ly,ex,ey,e.x,e.y,e.r+24))hitEnemy(e,190*S.dmg*sm*jbonus(e),src,true);G.lances.push({x:lx,y:ly,a:G.aim,life:.28});G.flash=Math.max(G.flash,.12);A.lance()}
   G.shake=Math.max(G.shake,full?5+tier*4:1.5);const bx=G.px+Math.cos(G.aim)*24,by=G.py+Math.sin(G.aim)*24;
   if(full){ring(bx,by,6,54+tier*36,.25,tier?'#ffffff':'#8fd8ff',3+tier*2);for(let i=0;i<9+tier*9;i++){const a=G.aim+Math.PI+rand(-.9,.9);part(bx,by,Math.cos(a)*rand(60,300),Math.sin(a)*rand(60,300),rand(.2,.5),rand(2,5),'#8fd8ff')}
-    if(tier&&!forced)text(G.px,G.py-34,tier===2?'HEILIG PFEIL':'ÜBERZUG','#ffffff',16+tier*4,.8)}};
+    if(tier&&!forced)text(G.px,G.py-34,tier>=2?'HEILIG PFEIL':'ÜBERZUG','#ffffff',16+tier*4,.8)}};
 function isMask(e,a,ox,oy){if(e.type==='rift'||e.type==='worm'||e.type==='gil'&&a.kind!==0)return false;const ca=Math.cos(e.ang),sa=Math.sin(e.ang);if(a.vx*ca+a.vy*sa>0)return false;
   const s=Math.hypot(a.vx,a.vy)||1;return segHit(ox,oy,a.x+a.vx/s*40,a.y+a.vy/s*40,e.x+ca*e.r*.42,e.y+sa*e.r*.42,e.r*(e.big?.3:.45)*S.maskR+1.5)}
 arrowHit=function(e,a,mask){const bow=a.kind===0;let d=a.dmg*armorMul(e,a)*jbonus(e),crit=false,far=0;
   if(mask){d*=bow?S.maskM:1.5;crit=true}else if(Math.random()<S.crit){d*=S.critM;crit=true}
-  if(bow){far=clamp((Math.hypot(e.x-a.ox,e.y-a.oy)-350)/500,0,1);d*=1+(S.farK||.6)*far}
+  if(bow){far=clamp((Math.hypot(e.x-a.ox,e.y-a.oy)-(S.farStart||350))/500,0,1);d*=1+(S.farK||.6)*far}
   if(S.u.u_eis&&e.slowT>0)d*=1.3;
   if(a.kind===1){e.mark=Math.min(S.markMax,(e.mark||0)+(S.sintflut?2:1));if(S.kblitz&&++G.shockN>=8){G.shockN=0;chain(e,30*S.dmg)}if(S.frost&&Math.random()<.12)e.slowT=2}
   else if(bow){if(e.mark){d*=1+.2*e.mark;G.reishi=Math.min(S.rmax,G.reishi+e.mark);if(S.u.u_gier)G.hp=Math.min(G.maxhp,G.hp+.5*e.mark);ring(e.x,e.y,4,20+e.mark*6,.2,'#bfe9ff',3);e.mark=0}
@@ -1470,13 +1476,13 @@ const _su5=sysUpdate;sysUpdate=function(dt){_su5(dt);if(G.state!=='play')return;
   if(G.boss)G.bossT+=dt;if(G.storm>0)G.reishi=Math.min(S.rmax,G.reishi+6*dt);
   if(G.t-G.killT>5&&G.stolz>0)pride(-.8*dt);
   // overdraw: a full bow keeps drinking
-  if(mouse.l&&G.charge>=1&&!ult){if(G.over<2&&G.reishi>0&&G.kit.over){const o0=G.over|0;G.over=Math.min(2,G.over+dt/.55);G.reishi=Math.max(0,G.reishi-12*dt);if((G.over|0)>o0){A.chime();ring(G.px,G.py,90,20,.2,'#ffffff',3);G.shake=Math.max(G.shake,4)}
+  if(mouse.l&&G.charge>=1&&!ult){if(G.over<(S.overCap||2)&&G.reishi>0&&G.kit.over){const o0=G.over|0;G.over=Math.min(S.overCap||2,G.over+dt/.55*(S.overRate||1));G.reishi=Math.max(0,G.reishi-12*dt*(S.overCost||1));if((G.over|0)>o0){A.chime();ring(G.px,G.py,90,20,.2,'#ffffff',3);G.shake=Math.max(G.shake,4)}
       if(Math.random()<.7){const a=rand(TAU),d=rand(60,130);part(G.px+Math.cos(a)*d,G.py+Math.sin(a)*d,-Math.cos(a)*d*3,-Math.sin(a)*d*3,.3,rand(2,4),'#dff3ff')}}}else if(!mouse.l)G.over=0;
   // a step into a shot
-  if(G.stepT>0){G.stepT-=dt;if(mouse.l&&G.charge>0&&G.charge<.6){G.charge=.6;G.stepT=0}}
+  if(G.stepT>0){G.stepT-=dt;if(mouse.l&&G.charge>0&&G.charge<.6){G.charge=.6;G.stepT=0;G.stepShot=1}}
   if(G.instant&&mouse.l&&G.charge>0&&G.charge<1){G.charge=.999;G.instant=0}
   // drawing the bow near a quartz tree drinks it
-  if(mouse.l&&!ult&&G.reishi<S.rmax&&G.over===0){const tr=treeNear();if(tr){const amt=Math.min(tr.st,18*dt);G.drained.set(tr.k,tr.st-amt);G.reishi=Math.min(S.rmax,G.reishi+amt*S.rgain);
+  if(mouse.l&&!ult&&G.reishi<S.rmax&&G.over===0){const tr=treeNear();if(tr){const amt=Math.min(tr.st,18*dt*(S.treeK||1));G.drained.set(tr.k,tr.st-amt);G.reishi=Math.min(S.rmax,G.reishi+amt*S.rgain);
       if(Math.random()<.8){const a=rand(TAU),d=rand(10,60),sx=tr.x+Math.cos(a)*d,sy=tr.y+Math.sin(a)*d;part(sx,sy,(G.px-sx)*2.4,(G.py-sy)*2.4,.42,rand(2,4),'#bfe9ff')}
       if(tr.st-amt<=0){G.treesN++;burst(tr.x,tr.y,26,260,.8,6,'#eef1f8',1);burst(tr.x,tr.y,14,200,.5,4,'#8fd8ff');ring(tr.x,tr.y,10,90,.3,'#dff3ff',3);if(A.ctx)A.kill(false,0)}}}};
 const _fx5=sysDrawFx;sysDrawFx=function(){_fx5();if(G.state!=='play')return;
@@ -1484,9 +1490,9 @@ const _fx5=sysDrawFx;sysDrawFx=function(){_fx5();if(G.state!=='play')return;
   const t=tierS();if(t>=2){ctx.strokeStyle=`rgba(255,243,168,${.12*t})`;ctx.lineWidth=1.5;for(let i=0;i<t;i++){const a=G.t*(.6+i*.2)+i*1.7;ctx.beginPath();ctx.arc(G.px,G.py,26+i*5,a,a+2.2);ctx.stroke()}}};
 const _sh5=sysHUD;sysHUD=function(u,pad,f){_sh5(u,pad,f);const t=tierS();
   ctx.textAlign='right';ctx.fillStyle=t?'#fff3a8':'#c9cedd';ctx.font=f(12,700);ctx.fillText('STOLZ'+(t?' '+ROMAN[t-1]+' · +'+10*t+'% damage':''),W-pad,pad+140*u);bar(W-pad-130*u,pad+146*u,130*u,6*u,G.stolz/100,'#fff3a8');
-  const bw=Math.min(300*u,W*.42),atk=mouse.l||mouse.r;ctx.fillStyle=atk?'#ff8296':'#8fd8ff';ctx.font=f(11,700);ctx.fillText(atk?'BLUT ARTERIE':'BLUT VENE · −40% harm',pad+bw,H-pad-69*u);
+  const bw=Math.min(300*u,W*.42),atk=mouse.l||mouse.r;ctx.fillStyle=atk?'#ff8296':'#8fd8ff';ctx.font=f(11,700);ctx.fillText(atk?'BLUT ARTERIE · full harm':'BLUT VENE · −'+Math.round((1-(S.veneK||.6))*100)+'% harm',pad+bw,H-pad-69*u);
   if(G.lull&&!G.boss){ctx.textAlign='center';ctx.fillStyle='rgba(201,206,221,.6)';ctx.font=f(13);ctx.fillText('· the desert holds its breath ·',W/2,pad+22*u)}
-  if(G.over>0&&G.state==='play'){ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.lineWidth=3;for(let i=0;i<2;i++){const k=clamp(G.over-i,0,1);if(k>0){ctx.beginPath();ctx.arc(mouse.x,mouse.y,23+i*7,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}}ctx.globalCompositeOperation='source-over'}};
+  if(G.over>0&&G.state==='play'){ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.lineWidth=3;for(let i=0;i<3;i++){const k=clamp(G.over-i,0,1);if(k>0){ctx.beginPath();ctx.arc(mouse.x,mouse.y,23+i*7,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}}ctx.globalCompositeOperation='source-over'}};
 </script>
 <script>
 'use strict';
@@ -1540,7 +1546,7 @@ cv.addEventListener('mousedown',e=>{if(e.button===1){e.preventDefault();seele()}
 const _ult6=tryUlt;tryUlt=function(){const can=G.ult>=100&&G.ultT<=0;_ult6();if(can&&G.ultT>0){G.voll=tierS()>=3?1:0;if(G.voll){G.ultT+=4;G.skl=G.ultT;banner('QUINCY: VOLLSTÄNDIG','The Heiligenschein opens. The desert itself is enslaved.')}}};
 const _su6=sysUpdate;sysUpdate=function(dt){_su6(dt);if(G.state!=='play')return;
   if(G.ssCd>0)G.ssCd-=dt;if(G.antiT>0)G.antiT-=dt;
-  const u=G.ultT>0;if(G.wasUlt&&!u){if(!G.voll){G.reishi=0;text(G.px,G.py-50,'REISHI SPENT','#9aa3bd',16,1.4)}G.voll=0}G.wasUlt=u;
+  const u=G.ultT>0;if(G.wasUlt&&!u){if(!G.voll&&!S.noBurn){G.reishi=0;text(G.px,G.py-50,'REISHI SPENT','#9aa3bd',16,1.4)}G.voll=0}G.wasUlt=u;
   for(const f of G.fx)if(f.k==='zw'){for(let i=G.ebul.length-1;i>=0;i--)if(Math.hypot(G.ebul[i].x-f.x,G.ebul[i].y-f.y)<175){part(G.ebul[i].x,G.ebul[i].y,0,0,.3,6,'#ffffff');G.ebul.splice(i,1)}
       if((f.acc+=dt)>=.25){f.acc=0;for(const e of G.enemies.slice()){const dx=e.x-f.x,dy=e.y-f.y,d=Math.hypot(dx,dy)||1;if(e.hidden||d>170+e.r)continue;e.kx+=dx/d*160/e.mass;e.ky+=dy/d*160/e.mass;hitEnemy(e,sdmg(30),{vx:dx,vy:dy,kills:0,kind:4},false)}}}};
 const _fx6=sysDrawFx;sysDrawFx=function(){_fx6();for(const f of G.fx){
@@ -1859,5 +1865,108 @@ const _od10=onDeath;onDeath=function(){checkTrials();_od10()};
 const _su10=sysUpdate;sysUpdate=function(dt){_su10(dt);if(G.state==='win'||G.state==='play'){if((G.trT+=dt)>1||G.state==='win'){G.trT=0;checkTrials()}}if(G.state==='play'&&zmod('storm'))G.storm=Math.max(G.storm,1.5)};
 $('winGo').onclick=()=>openDoors();
 const _sb10=showBest;showBest=function(){_sb10();const t=nextTrial();$('trialLine').textContent=t?'Next trial · '+t.n+' · '+t.d:'Every trial is passed.';const n=NPCS.filter(npcNew).length;if(n&&!$('outpost').textContent.includes('letter'))$('outpost').textContent='The Outpost · '+n+' waiting'};
-drawSchrift();newGame();showBest();requestAnimationFrame(frame);
+drawSchrift();</script>
+<script>
+'use strict';
+/* ================= SKILL LAYER: five paths, three visible ranks each, capstones and duos; drops that explain themselves ================= */
+meta=Object.assign({seenDrop:{}},meta);
+const P={pfeil:['Pfeil','#5fc8ff','lanze','The single arrow'],regen:['Regen','#7fe0c8','sintflut','The volley and its marks'],schritt:['Schritt','#cfe1ff','schatten','Hirenkyaku and the blade'],blut:['Blut','#ff8296','ranso','Blood, spirit and pride'],ginto:['Gintō','#c9a0ff','sturm','Silver tubes and reishi']};
+const SK=[
+ {id:'kopf',p:'pfeil',name:'Maskenbrecher',r:['Mask breaks hit 40% harder.','80% harder.','120% harder, and a mask-break kill draws your next arrow at once.']},
+ {id:'weit',p:'pfeil',name:'Weitschuss',r:['The long-shot bonus starts closer and grows by half.','It starts closer and grows again.','Each hollow an arrow passes through makes it hit 25% harder.']},
+ {id:'pierce',p:'pfeil',name:'Durchschuss',r:['Arrows pierce 2 more hollows.','2 more, and every hollow after the first is left with two marks.','2 more. An arrow that kills three returns 15 reishi.']},
+ {id:'uber',p:'pfeil',name:'Überzug',r:['Overdraw builds 30% faster and burns 20% less reishi.','Faster and cheaper again.','A third tier of overdraw opens: the true Heilig Pfeil.']},
+ {id:'multi',p:'pfeil',name:'Klavier',r:['+1 arrow beside each shot, at 60% strength.','+1 more.','+1 more, and side arrows hit at full strength.']},
+ {id:'expl',p:'pfeil',name:'Sprengpfeil',r:['Full-draw arrows burst on first impact.','A wider, stronger burst.','Mask-break kills burst too.']},
+ {id:'rsplit',p:'regen',name:'Zwillingsregen',r:['The volley gains a second stream.','A third stream.','A fourth stream.']},
+ {id:'rmark',p:'regen',name:'Brandmal',r:['Hollows hold 2 more marks. A drawn arrow cashes marks in for +20% each.','2 more. Marked hollows take 3% more from the volley per mark.','2 more. A marked hollow that dies passes its marks to the nearest.']},
+ {id:'rpierce',p:'regen',name:'Nadelregen',r:['Volley arrows pierce one more hollow.','One more.','One more, and they curve toward hollows.']},
+ {id:'spar',p:'regen',name:'Quellstrom',r:['The volley burns 20% less reishi.','20% less again.','20% less again. Volley kills return 2 reishi.']},
+ {id:'rain',p:'regen',name:'Dichter Regen',r:['Volley arrows hit 30% harder.','30% harder again.','30% harder again, and a volley arrow through the mask shatters it for double.']},
+ {id:'dash',p:'schritt',name:'Hirenkyaku',r:['+1 dash, and dashes return 15% sooner.','+1 more.','+1 more. Stepping through shots destroys them.']},
+ {id:'slice',p:'schritt',name:'Seele Schneider',r:['Dashing through hollows cuts them. The V sweep hits 40% harder.','Deeper cuts, heavier sweeps.','A sweep that kills is ready again at once.']},
+ {id:'sschuss',p:'schritt',name:'Schrittschuss',r:['The arrow loosed right after a step hits 50% harder.','100% harder.','150% harder, and it pierces everything.']},
+ {id:'spd',p:'schritt',name:'Wanderer',r:['Move 8% faster.','8% more.','8% more, and you draw 15% faster while moving.']},
+ {id:'sprung',p:'schritt',name:'Zeitsprung',r:['Each dash ends in a ring of 8 arrows.','12 arrows.','16 arrows, and they pierce.']},
+ {id:'vene',p:'blut',name:'Blut Vene',r:['With the bow lowered you take 50% less harm, up from 40%.','60% less.','70% less. Lowering the bow makes you untouchable for a moment, once every 6 s.']},
+ {id:'art',p:'blut',name:'Blut Arterie',r:['Your arrows hit 15% harder.','30% harder.','45% harder, and half again at full Stolz.']},
+ {id:'thorn',p:'blut',name:'Dornenblut',r:['When you are struck, your blood bursts outward.','A stronger burst.','The burst also stuns what it hits.']},
+ {id:'regen',p:'blut',name:'Heilende Ader',r:['Recover 0.6 spirit per second.','1.2 per second.','1.8 per second, and a mask-break kill mends 1 spirit.']},
+ {id:'hp',p:'blut',name:'Reishi-Körper',r:['+25 spirit, and mend 35 now.','+25 more.','+25 more.']},
+ {id:'stolzk',p:'blut',name:'Haltung',r:['Stolz builds 30% faster, and a blow costs 28 of it, not 35.','60% faster. A blow costs 21.','90% faster. A blow costs 14.']},
+ {id:'skill',p:'ginto',name:'Gintō-Lehre',r:['Q, E and R hit 25% harder.','50% harder.','75% harder.']},
+ {id:'cdr',p:'ginto',name:'Fokus',r:['Skills recharge 10% faster.','19% faster.','27% faster, and each cast returns a third of its reishi.']},
+ {id:'mag',p:'ginto',name:'Reishi-Sog',r:['Reishi flies to you from 40% farther, and you gain 25% more of it.','Farther and more again.','Again, and quartz trees drain twice as fast.']},
+ {id:'seek',p:'ginto',name:'Jagdfalke',r:['Every few seconds a homing arrow looses itself at the nearest hollow.','Two arrows.','Three arrows.']},
+ {id:'orbit',p:'ginto',name:'Seelenklingen',r:['A Seele Schneider circles you, cutting what it touches.','Two blades.','Three blades, sweeping wider and faster.']},
+ {id:'ultg',p:'ginto',name:'Kreuzträger',r:['Letzt Stil charges 25% faster.','50% faster.','75% faster, and it no longer spends your reishi when it ends.']}];
+const CAPS={lanze:['Licht Lanze','A fully overdrawn arrow also looses a lance of light through everything in its line.'],sintflut:['Sintflut','The volley burns 40% less reishi and every hit lays two marks.'],
+ schatten:['Schattenlauf','Your dash cuts everything it crosses, hard. A kill made by the cut gives the dash back.'],ranso:['Ransōtengai','Once more this night, when you would die, threads of reishi drag you back to your feet.'],sturm:['Gintō-Sturm','Every third skill you cast costs nothing and is ready again at once.']};
+const DUOS=[{id:'kette',a:'expl',b:'rmark',name:'Kettenbrand',desc:'Whatever dies inside a burst bursts too.'},{id:'jagd',a:'seek',b:'kopf',name:'Maskenjäger',desc:'Jagdfalke arrows always strike the mask.'},{id:'blutregen',a:'art',b:'rsplit',name:'Blutregen',desc:'At Stolz III or higher, every volley hit mends a little spirit.'}];
+const skOf=id=>SK.find(s=>s.id===id),Lr=id=>G.up[id]||0;
+UPG.length=0;for(const s of SK)UPG.push({id:s.id,name:s.name,sub:P[s.p][0],desc:s.r[0],max:3});
+EVO.length=0;for(const k in CAPS)EVO.push({id:k,name:CAPS[k][0],desc:CAPS[k][1],max:1,evo:1,req:{},need:''});for(const d of DUOS)EVO.push({id:d.id,name:d.name,desc:d.desc,max:1,evo:1,req:{},need:''});
+Object.assign(ABBR,{kopf:'Mb',weit:'Ws',uber:'Üz',sschuss:'Ss',art:'BA',stolzk:'Ha',spar:'Qs',schatten:'SL',ranso:'Rt',sturm:'GS',jagd:'MJ',blutregen:'BR',rain:'DR',vene:'BV'});
+Object.assign(KITREQ,{rsplit:'volley',rmark:'volley',rpierce:'volley',spar:'volley',rain:'volley',dash:'dash',sprung:'dash',sschuss:'dash',slice:'seele',uber:'over',skill:'q',cdr:'q',ultg:'ult',mag:null});
+const pathCount=p=>SK.filter(s=>s.p===p&&Lr(s.id)).length;
+openLevel=function(reroll){const avail=SK.filter(s=>Lr(s.id)<3&&kitOk(s.id)),caps=[];
+  for(const k in P){const c=P[k][2];if(!Lr(c)&&pathCount(k)>=3)caps.push({cap:k,id:c})}
+  for(const d of DUOS)if(!Lr(d.id)&&Lr(d.a)&&Lr(d.b))caps.push({duo:d,id:d.id});
+  if(!avail.length&&!caps.length){G.pendLv=0;G.relic=false;G.hp=Math.min(G.maxhp,G.hp+20);if(G.state!=='play')setState('play');return}
+  const ch=[];if(caps.length)ch.push(pick(caps));const pool=avail.slice();
+  while(ch.length<3&&pool.length){const owned=pool.filter(s=>Lr(s.id)),s=pick(owned.length&&Math.random()<.45?owned:pool);pool.splice(pool.indexOf(s),1);ch.push(s)}
+  $('lvlTitle').textContent=G.relic?'A relic of the desert':'Choose a technique';const box=$('cards');box.innerHTML='';
+  ch.forEach((u,i)=>{const b=document.createElement('button'),own=Lr(u.id);b.id='card'+i;let h=`<span class="n">${i+1}</span>`;
+    if(u.cap){const p=P[u.cap],c=CAPS[u.id];b.className='card evo';h+=`<i>Capstone · ${p[0]} path</i><b>${c[0]}</b><span>${c[1]}</span><span class="pth">Offered because you hold three ${p[0]} techniques</span>`}
+    else if(u.duo){const d=u.duo;b.className='card evo';h+=`<i>Duo · ${skOf(d.a).name} + ${skOf(d.b).name}</i><b>${d.name}</b><span>${d.desc}</span><span class="pth">Offered because you hold both</span>`}
+    else{const p=P[u.p],n=pathCount(u.p)+(own?0:1);b.className='card';b.style.setProperty('--c',p[1]);b.style.borderTopColor=p[1];
+      h+=`<i style="color:${p[1]}">${p[0]} · ${own?'rank '+ROMAN[own-1]+' → '+ROMAN[own]:'new'}</i><b>${u.name}</b>`+u.r.map((t,k)=>`<span class="rk ${k<own?'had':k===own?'now':'later'}">${ROMAN[k]} · ${t}</span>`).join('')+
+       `<span class="pth">${Lr(p[2])?p[0]+' capstone held':n>=3?p[0]+' capstone: '+CAPS[p[2]][0]+' will be offered':p[0]+' path '+n+'/3 toward '+CAPS[p[2]][0]}</span>`}
+    b.innerHTML=h;b.onclick=()=>{G.up[u.id]=own+1;if(u.id==='hp'){G.maxhp+=25;G.hp=Math.min(G.maxhp,G.hp+35)}if(u.id==='ranso')G.revives++;calcStats();G.pendLv--;G.relic=false;G.hp=Math.min(G.maxhp,G.hp+G.maxhp*.03);
+      ring(G.px,G.py,10,160,.4,u.cap||u.duo?'#ffd27a':'#8fd8ff',4);if(u.cap||u.duo)banner((u.cap?CAPS[u.id][0]:u.duo.name).toUpperCase(),u.cap?'Capstone of the '+P[u.cap][0]+' path':'Two techniques become one');
+      if(G.pendLv>0)openLevel();else{setState('play');G.inv=Math.max(G.inv,.6)}};box.appendChild(b)});
+  $('reroll').hidden=G.rerolls<=0;$('reroll').textContent=`Reroll · ${G.rerolls} left · R`;if(!reroll)A.levelup();setState('levelup')};
+buildHTML=function(){const ids=Object.keys(G.up);if(!ids.length)return'<span>No techniques yet</span>';return ids.map(id=>{const s=skOf(id);if(s)return`<span style="border-color:${P[s.p][1]}"><b style="color:${P[s.p][1]}">${s.name} ${ROMAN[G.up[id]-1]}</b> · ${s.r[G.up[id]-1]}</span>`;const c=CAPS[id],d=DUOS.find(x=>x.id===id);return`<span style="border-color:var(--gold)"><b style="color:var(--gold)">${c?c[0]:d.name}</b> · ${c?c[1]:d.desc}</span>`}).join('')};
+
+/* ---------- what the ranks do ---------- */
+const _pr11=pride;pride=function(n){_pr11(n>0?n*(S.prideGain||1):n===-35?-(S.prideLoss||35):n)};
+const _cs11=calcStats;calcStats=function(){_cs11();S.dr/=Math.pow(.88,Lr('vene'));S.veneK=.6-.1*Lr('vene');S.maskM*=1+.4*Lr('kopf');S.farK+=.3*Lr('weit');S.farStart=350-70*Lr('weit');
+  S.overRate=1+.3*Lr('uber');S.overCost=1-.2*Lr('uber');S.overCap=Lr('uber')>=3?3:2;S.sideM=Lr('multi')>=3?1:.6;S.rainCost*=Math.pow(.8,Lr('spar'));S.dmg*=1+.15*Lr('art');
+  S.prideGain=1+.3*Lr('stolzk');S.prideLoss=35-7*Lr('stolzk');S.treeK=Lr('mag')>=3?2:1;if(Lr('orbit')>=3)S.klingen=1;if(Lr('rpierce')>=3)S.stern=1;S.noBurn=Lr('ultg')>=3;
+  if(Lr('schatten'))S.slice=Math.max(S.slice,1)+2;S.dashRefund=Lr('schatten');S.drawTb=S.drawT};
+const _f11=fire;fire=function(c,forced){const s0=G.soul,p0=S.pierce;let m=1;if(G.stepShot&&c>=.5&&!forced&&Lr('sschuss')){m*=1+.5*Lr('sschuss');if(Lr('sschuss')>=3)S.pierce+=99}
+  if(Lr('art')>=3&&tierS()>=4)m*=1.5;G.soul=(1+s0)*m-1;_f11(c,forced);G.soul=s0;S.pierce=p0;G.stepShot=0};
+const _ah11=arrowHit;arrowHit=function(e,a,mask){const d0=a.dmg;if(a.kind===2&&Lr('jagd')){mask=true;a.dmg*=S.maskM/1.5}
+  if(a.kind===1){if(Lr('rmark')>=2&&e.mark)a.dmg*=1+.03*e.mark;if(mask&&Lr('rain')>=3)a.dmg*=1.34}
+  _ah11(e,a,mask);a.dmg=d0;const dead=e.hp<=0;
+  if(a.kind===0){if(!dead&&Lr('pierce')>=2&&a.hit.length>1)e.mark=Math.min(S.markMax,(e.mark||0)+2);if(Lr('weit')>=3)a.dmg*=1.25;
+    if(mask&&dead){if(Lr('kopf')>=3)G.instant=1;if(Lr('expl')>=3)blast(e.x,e.y,70+22*S.expl,d0*.5,e);if(Lr('regen')>=3)G.hp=Math.min(G.maxhp,G.hp+1)}}
+  if(a.kind===1&&Lr('blutregen')&&tierS()>=3)G.hp=Math.min(G.maxhp,G.hp+.15)};
+const _ok11=onKill;onKill=function(e,src){_ok11(e,src);if(src){if(src.kind===0&&src.kills===2&&Lr('pierce')>=3){G.reishi=Math.min(S.rmax,G.reishi+15);text(G.px,G.py-50,'+15 REISHI','#bfe9ff',15,.8)}
+    if(src.kind===1&&Lr('spar')>=3)G.reishi=Math.min(S.rmax,G.reishi+2)}
+  if(e.mark&&Lr('rmark')>=3){const n=nearest(e.x,e.y,260,[e.id]);if(n){n.mark=Math.min(S.markMax,(n.mark||0)+e.mark);G.bolts.push({x1:e.x,y1:e.y,x2:n.x,y2:n.y,life:.15})}}};
+const _oh11=onHurt;onHurt=function(){_oh11();if(Lr('thorn')>=3)for(const e of G.enemies)if(!e.boss&&!e.hidden&&Math.hypot(e.x-G.px,e.y-G.py)<140+e.r)e.stunT=Math.max(e.stunT||0,1.2)};
+const _se11=seele;seele=function(){const k0=G.kills;_se11();if(Lr('slice')>=3&&G.kills>k0)G.ssCd=0};
+const _c11=cast;cast=function(i){const r0=G.reishi,rdy=G.cd[i]<=0;_c11(i);if(rdy&&G.cd[i]>0){const spent=r0-G.reishi;if(Lr('cdr')>=3&&spent>0)G.reishi=Math.min(S.rmax,G.reishi+spent/3);
+    if(Lr('sturm')&&++G.castN%3===0){G.cd[i]=0;G.reishi=Math.max(G.reishi,r0);text(G.px,G.py-60,'GINTŌ-STURM','#c9a0ff',16,.8)}}};
+/* ---------- drops that explain themselves ---------- */
+const DROPS=[['#8fd8ff','Reishi','Blue motes. Your ammunition for the volley, skills and overdraw, and what you grow on. Drawing the bow pulls them in from farther away.'],
+ ['#9dffb0','Spirit','Green. Mends 18 spirit. Left by great hollows, rifts and sometimes elites.'],['#ffd27a','Relic','Gold. A free technique, chosen from three. Left by elites.'],
+ ['#c77dff','Equipment','A pillar of light, coloured by quality: grey Schlicht, blue Geweiht, violet Heilig, gold Sternritter. Press I to wear it. It stays with you between nights.'],
+ ['#ff8296','Soul core','Red. Taken by Sklaverei from elites, bosses and some Gillians: a lasting power for this night, named when you take it.']];
+$('legend').innerHTML=DROPS.map(d=>`<div><b style="color:${d[0]}">● ${d[1]}</b> ${d[2]}</div>`).join('');
+function dropTip(k){if(meta.seenDrop[k]||G.state!=='play')return;meta.seenDrop[k]=1;saveMeta();G.tips.push([G.t+.3,DROPS[k][1].toUpperCase()+' · '+DROPS[k][2]])}
+const _gx11=gainXp;gainXp=function(x){dropTip(0);_gx11(x)};
+const _pk11=pickItem;pickItem=function(it){dropTip(3);_pk11(it)};
+const _tc11=takeCore;takeCore=function(o){dropTip(4);_tc11(o)};
+const _ol11=openLevel;openLevel=function(r){if(G.relic)dropTip(2);_ol11(r)};
+const _ng11=newGame;newGame=function(){_ng11();Object.assign(G,{stepShot:0,castN:0,veneCd:0,wasAtk:false,hp0:0});calcStats()};
+const _su11=sysUpdate;sysUpdate=function(dt){const hp0=G.hp;_su11(dt);if(G.state!=='play')return;
+  if(G.hp>hp0+10)dropTip(1);
+  if(Lr('dash')>=3&&G.dashT>0)for(let i=G.ebul.length-1;i>=0;i--)if(Math.hypot(G.ebul[i].x-G.px,G.ebul[i].y-G.py)<46){part(G.ebul[i].x,G.ebul[i].y,0,0,.3,6,'#bfe9ff');G.ebul.splice(i,1)}
+  const atk=mouse.l||mouse.r;if(G.veneCd>0)G.veneCd-=dt;if(G.wasAtk&&!atk&&Lr('vene')>=3&&G.veneCd<=0){G.veneCd=6;G.inv=Math.max(G.inv,.4);ring(G.px,G.py,30,8,.25,'#8fd8ff',3)}G.wasAtk=atk;
+  if(Lr('spd')>=3)S.drawT=S.drawTb*(G.mvx||G.mvy?.85:1)};
+const _fx11=sysDrawFx;sysDrawFx=function(){_fx11();ctx.textAlign='center';ctx.font='700 11px Rajdhani,sans-serif';
+  for(const o of G.orbs){if(!o.kind||o.pull)continue;const lab=o.kind===1?['SPIRIT','#9dffb0']:o.kind===2?['RELIC','#ffd27a']:o.kind===3?[RAR[o.item.rar][0].toUpperCase()+' · '+SLOTN[o.item.slot].toUpperCase(),o.item.col]:['SOUL CORE','#ff9db0'];ctx.fillStyle=lab[1];ctx.fillText(lab[0],o.x,o.y+24)}};
+newGame();showBest();requestAnimationFrame(frame);
 </script>
