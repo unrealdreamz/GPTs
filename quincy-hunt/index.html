@@ -466,15 +466,15 @@ const ET={
  armor:{hp:130,spd:72,r:20,dmg:16,xp:5,sc:50,ult:3,mass:3},
  worm:{hp:210,spd:230,r:22,dmg:20,xp:9,sc:90,ult:5,mass:6},
  rift:{hp:300,spd:0,r:34,dmg:0,xp:14,sc:400,ult:6,mass:1e5},
- arr:{hp:3600,spd:235,r:17,dmg:22,xp:180,sc:4000,ult:40,mass:14,boss:1},
- vasto:{hp:5200,spd:215,r:18,dmg:24,xp:220,sc:5000,ult:40,mass:14,boss:1}};
+ arr:{hp:2800,spd:235,r:17,dmg:15,xp:180,sc:4000,ult:40,mass:14,boss:1},
+ vasto:{hp:4200,spd:215,r:18,dmg:17,xp:220,sc:5000,ult:40,mass:14,boss:1}};
 function spawnDist(){return Math.hypot(VW,VH)/2+90}
 function spawn(type,x,y,elite){const d=ET[type],t=G.t,hm=1+t/150+Math.pow(t/300,2)*.5,em=elite?1:0;
   if(x===undefined){const a=rand(TAU),r=spawnDist()+(type==='gil'?60:0);x=G.px+Math.cos(a)*r;y=G.py+Math.sin(a)*r}
-  const e={type,x,y,kx:0,ky:0,hp:d.hp*hm*(d.boss?1+G.bossN*.6:1)*(em?6:1),r:d.r*(em?1.35:1),spd:d.spd*(1+Math.min(t/900,.35)),dmg:d.dmg*(1+t/420),xp:d.xp*(em?8:1),sc:d.sc*(em?8:1),ultv:d.ult*(em?4:1),mass:d.mass*(em?3:1),
+  const e={type,x,y,kx:0,ky:0,hp:d.hp*hm*(d.boss?1+G.bossN*.35:1)*(em?6:1),r:d.r*(em?1.35:1),spd:d.spd*(1+Math.min(t/900,.35)),dmg:d.dmg*(1+t/750),xp:d.xp*(em?8:1),sc:d.sc*(em?8:1),ultv:d.ult*(em?4:1),mass:d.mass*(em?3:1),
     ang:0,t:rand(10),state:0,st:0,cd:rand(1,3),flash:0,id:G.eid++,side:Math.random()<.5?-1:1,ca:0,glow:0,hidden:false,boss:!!d.boss,elite:!!elite,slash:0,n:0,tx:0,ty:0};
   e.mhp=e.hp;G.enemies.push(e);onSpawn(e);return e}
-function aimSlash(e){const a=rand(TAU);e.tx=G.px+G.mvx*60+Math.cos(a)*55;e.ty=G.py+G.mvy*60+Math.sin(a)*55}
+function aimSlash(e){const a=rand(TAU);e.tx=G.px+G.mvx*25+Math.cos(a)*45;e.ty=G.py+G.mvy*25+Math.sin(a)*45}
 function ceroStates(e,dt,face,halfW,mul){
   if(e.state===2){e.st-=dt;if(e.st>.3){let da=face-e.ca;da=Math.atan2(Math.sin(da),Math.cos(da));e.ca+=da*Math.min(1,dt*6)}if(e.st<=0){e.state=3;e.st=.4;A.ceroFire();G.shake=Math.max(G.shake,12)}return true}
   if(e.state===3){e.st-=dt;e.ca+=e.side*dt*.5;const ox=e.x+Math.cos(e.ca)*e.r,oy=e.y+Math.sin(e.ca)*e.r;if(segHit(ox,oy,ox+Math.cos(e.ca)*1500,oy+Math.sin(e.ca)*1500,G.px,G.py,halfW))hurt(e.dmg*mul);if(e.st<=0){e.state=0;e.cd=1.2+rand(.8)}return true}
@@ -541,16 +541,16 @@ function updEnemy0(e,dt){
     if(e.st>45){const i=G.enemies.indexOf(e);if(i>=0)G.enemies.splice(i,1);for(let k=0;k<3;k++)spawn(G.t>150?'adj':'brute',e.x+rand(-60,60),e.y+rand(-60,60));ring(e.x,e.y,20,300,.5,'#c77dff',10);text(e.x,e.y,'THE RIFT TEARS OPEN','#c77dff',22,1.6);A.roar();return}}
   else if(T==='arr'){if(e.slash>0)e.slash-=dt;
     if(e.state===0){const want=190,rad=(d-want)/90;mx=-ny*e.side*.9+nx*clamp(rad,-1,1);my=nx*e.side*.9+ny*clamp(rad,-1,1);e.cd-=dt;
-      if(e.cd<=0){e.side=-e.side;const p=Math.random();if(p<.45){e.state=5;e.n=3+Math.min(G.bossN,3);e.st=.45;aimSlash(e)}else if(p<.75){e.state=6;e.n=2;e.st=.35}else{e.state=2;e.st=.8;e.ca=face;A.ceroCharge(.8)}}}
+      if(e.cd<=0){e.side=-e.side;const p=Math.random();if(p<.45){e.state=5;e.n=3+Math.min(G.bossN,3);e.st=.7;aimSlash(e)}else if(p<.75){e.state=6;e.n=2;e.st=.35}else{e.state=2;e.st=.8;e.ca=face;A.ceroCharge(.8)}}}
     else if(e.state===5){e.st-=dt;if(e.st<=0){burst(e.x,e.y,10,160,.3,6,'#0a0a10',2);e.x=e.tx;e.y=e.ty;e.slash=.18;e.ang=face=Math.atan2(G.py-e.y,G.px-e.x);ring(e.x,e.y,10,115,.2,'#ffffff',7);G.shake=Math.max(G.shake,7);A.slash();
-        if(Math.hypot(G.px-e.x,G.py-e.y)<112)hurt(e.dmg);if(--e.n>0){e.st=.38;aimSlash(e)}else{e.state=0;e.cd=1.3+rand(.6)}}}
+        if(Math.hypot(G.px-e.x,G.py-e.y)<112)hurt(e.dmg);if(--e.n>0){e.st=.55;aimSlash(e)}else{e.state=0;e.cd=1.3+rand(.6)}}}
     else if(e.state===6){e.st-=dt;if(e.st<=0){for(let k=-2;k<=2;k++){const a=face+k*.2;ebullet(e.x,e.y,Math.cos(a)*430,Math.sin(a)*430,9,e.dmg*.7)}e.slash=.15;A.slash();if(--e.n>0)e.st=.4;else{e.state=0;e.cd=1.1+rand(.6)}}}
     else if(ceroStates(e,dt,face,26,1.4))face=e.ca;
     if(Math.random()<.4)part(e.x+rand(-10,10),e.y+rand(-10,10),rand(-20,20),rand(-60,-20),.4,rand(2,5),'#3df0c0')}
   else if(T==='vasto'){
     if(e.state===0){const want=230,rad=(d-want)/100;mx=-ny*e.side*.8+nx*clamp(rad,-1,1);my=nx*e.side*.8+ny*clamp(rad,-1,1);e.cd-=dt;
       if(e.cd<=0){e.side=-e.side;const p=Math.random();if(p<.36){e.state=1;e.st=.5}else if(p<.7){e.state=2;e.st=.95;e.ca=face;A.ceroCharge(.95)}else{e.state=4;e.st=.6;e.hidden=true;e.tx=G.px+G.mvx*90;e.ty=G.py+G.mvy*90;burst(e.x,e.y,20,200,.5,8,'#0a0a10',2);A.dash()}}}
-    else if(e.state===1){e.st-=dt;if(e.st<=0){const n=16+Math.min(G.bossN*4,12),o=rand(TAU);for(let k=0;k<n;k++){const a=o+k/n*TAU;ebullet(e.x,e.y,Math.cos(a)*230,Math.sin(a)*230,7,e.dmg*.6);ebullet(e.x,e.y,Math.cos(a+TAU/n/2)*150,Math.sin(a+TAU/n/2)*150,7,e.dmg*.6)}
+    else if(e.state===1){e.st-=dt;if(e.st<=0){const n=12+Math.min(G.bossN*2,8),o=rand(TAU);for(let k=0;k<n;k++){const a=o+k/n*TAU;ebullet(e.x,e.y,Math.cos(a)*220,Math.sin(a)*220,7,e.dmg*.5);ebullet(e.x,e.y,Math.cos(a+TAU/n/2)*140,Math.sin(a+TAU/n/2)*140,7,e.dmg*.5)}
         A.ceroFire();ring(e.x,e.y,10,200,.3,'#ff3355',6);e.state=0;e.cd=1.3+rand(.8)}}
     else if(e.state===2){e.st-=dt;if(e.st>.3){let da=face-e.ca;da=Math.atan2(Math.sin(da),Math.cos(da));e.ca+=da*Math.min(1,dt*6)}face=e.ca;if(e.st<=0){e.state=3;e.st=.4;A.ceroFire();G.shake=Math.max(G.shake,12)}}
     else if(e.state===3){face=e.ca;e.st-=dt;e.ca+=e.side*dt*.5;const ox=e.x+Math.cos(e.ca)*e.r,oy=e.y+Math.sin(e.ca)*e.r;
@@ -578,7 +578,7 @@ function spawner(dt){const t=G.t,cap=Math.min(40+t/3,240);G.spawnAcc+=dt*(1.2+t/
   if(t>=G.nextWell){G.nextWell=t+85;if(!G.wells.length){const a=rand(TAU),R=rand(700,900);G.wells.push({x:G.px+Math.cos(a)*R,y:G.py+Math.sin(a)*R,p:0,life:80});
       if(!G.seen.well){G.seen.well=1;banner('REISHI WELLSPRING','Stand in the sigil to claim it. The hollows will come.')}else text(G.px,G.py-60,'A WELLSPRING STIRS','#5fc8ff',20,1.6)}}
   if(t>=G.nextElite){G.nextElite=t+48;spawn(pick(t>130?['brute','armor','spitter','grunt']:['grunt','spitter']),undefined,undefined,true);text(G.px,G.py-60,'AN ELITE HUNTS YOU','#ffd27a',20,1.6)}
-  const ti=tierOf(t);if(ti!==G.tier){G.tier=ti;if(ti!==2&&ti!==4&&ti!==6)banner('THREAT '+ROMAN[Math.min(ti,15)],tierName(ti))}}
+  const ti=tierOf(t);if(ti!==G.tier){G.tier=ti;}}
 
 /* ---------- level up ---------- */
 function gainXp(x){G.xp+=x*S.xpM*(G.storm>0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.lvl++;G.xpNeed=Math.floor(G.xpNeed*1.2+5);G.pendLv++}
@@ -781,7 +781,7 @@ function drawTele(e){const T=e.type;
   if(T==='vasto'&&e.state===4){const k=1-e.st/.6;ctx.fillStyle=`rgba(255,51,85,${.12+.25*k})`;ctx.beginPath();ctx.arc(e.tx,e.ty,100,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,120,140,.9)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.tx,e.ty,100*k,0,TAU);ctx.stroke()}
   if(T==='worm'&&e.state<2){ctx.strokeStyle='rgba(18,22,44,.55)';ctx.lineWidth=3;for(let k=0;k<3;k++){const rr=10+((e.t*26+k*12)%36);ctx.globalAlpha=1-rr/46;ctx.beginPath();ctx.arc(e.x,e.y,rr,0,TAU);ctx.stroke()}ctx.globalAlpha=1;
     if(e.state===1){const k=1-e.st/.7;ctx.fillStyle=`rgba(255,51,85,${.12+.28*k})`;ctx.beginPath();ctx.arc(e.x,e.y,78,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,120,140,.9)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,e.y,78*k,0,TAU);ctx.stroke()}}
-  if(T==='arr'&&e.state===5){const k=clamp(1-e.st/.4,0,1);ctx.fillStyle=`rgba(255,51,85,${.1+.25*k})`;ctx.beginPath();ctx.arc(e.tx,e.ty,112,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,140,160,.9)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.tx,e.ty,112*k,0,TAU);ctx.stroke()}
+  if(T==='arr'&&e.state===5){const k=clamp(1-e.st/.55,0,1);ctx.fillStyle=`rgba(255,51,85,${.1+.25*k})`;ctx.beginPath();ctx.arc(e.tx,e.ty,112,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,140,160,.9)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.tx,e.ty,112*k,0,TAU);ctx.stroke()}
   if(T==='vasto'&&e.state===1){ctx.strokeStyle='rgba(255,51,85,.7)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(e.x,e.y,20+e.st*160,0,TAU);ctx.stroke()}}
 function drawBeams(){for(const e of G.enemies){const gil=e.type==='gil';if(!((gil&&e.state>=1)||(e.boss&&(e.state===2||e.state===3))))continue;
     const ox=e.x+Math.cos(e.ca)*e.r,oy=e.y+Math.sin(e.ca)*e.r,firing=gil?e.state===2:e.state===3;
@@ -887,7 +887,7 @@ function drawHUD(){const u=UI,pad=Math.max(16,18*u),f=(s,w=600,fam='Rajdhani')=>
       ctx.fillStyle='rgba(6,8,20,.72)';ctx.fillRect(x,y,cw,cw);ctx.strokeStyle=ev?'#ffd27a':'rgba(95,200,255,.5)';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,cw-1,cw-1);
       ctx.fillStyle=ev?'#ffd27a':'#f4f6fb';ctx.font=f(12,700);ctx.fillText(ABBR[id],x+cw/2,y+cw*.52);if(!ev){ctx.fillStyle='#5fc8ff';ctx.font=f(9,700);ctx.fillText(ROMAN[G.up[id]-1],x+cw/2,y+cw*.9)}})}
   // opening hints
-  if(G.t<50){const hs=['Hold LMB to draw the bow. Release to loose.','Release the instant the bow flashes for a PERFEKT shot.','Hold RMB to pour Licht Regen. It burns reishi.','Volley marks hollows. A charged arrow cashes the marks in.','SPACE is Hirenkyaku. Q, E and R are your Gintō skills.'],tt=G.t%10;
+  if(G.t<50){const hs=['Hold LMB to draw the bow. Release to loose.','Release as the ring closes for a PERFEKT shot. Chain them to build Fokus.','Hold RMB to pour Licht Regen. It burns reishi.','Volley marks hollows. A charged arrow cashes the marks in.','SPACE is Hirenkyaku. Q, E and R are your Gintō skills.'],tt=G.t%10;
     ctx.globalAlpha=clamp(Math.min(tt,10-tt)*1.5,0,1);ctx.textAlign='center';ctx.font=f(18);ctx.fillStyle='#f4f6fb';ctx.fillText(hs[Math.min(4,G.t/10|0)],W/2,H-pad-128*u);ctx.globalAlpha=1}
   // compass to things worth walking to
   const tg=[];for(const e of G.enemies){if(e.type==='rift')tg.push([e.x,e.y,'#c77dff','RIFT']);else if(e.elite)tg.push([e.x,e.y,'#ffd27a',e.bounty?'BOUNTY':'ELITE']);else if(e.boss)tg.push([e.x,e.y,'#ff3355',e.name])}for(const w of G.wells)tg.push([w.x,w.y,'#5fc8ff','WELLSPRING']);sysCompass(tg);
@@ -1116,7 +1116,7 @@ function updEnemy(e,dt){
     if(e.aff.includes('Arcane')){e.acd=(e.acd||3)-dt;if(e.acd<=0){e.acd=3.4;const o=rand(TAU);for(let k=0;k<10;k++)ebullet(e.x,e.y,Math.cos(o+k/10*TAU)*190,Math.sin(o+k/10*TAU)*190,6,e.dmg*.5)}}}
   const s0=e.spd;e.spd*=m;updEnemy0(e,dt);e.spd=s0}
 function onKill(e,src){const j=meta.j[e.type]=meta.j[e.type]||{k:0},t0=jtier(e.type);j.k++;if(jtier(e.type)>t0&&JRN[e.type])text(G.px,G.py-70,'JAGDBUCH: '+JRN[e.type][0].toUpperCase()+' '+ROMAN[t0],'#ffd27a',18,1.8);
-  G.silver+=e.sc/25+(e.boss?120:e.elite?25:0);if(S.u.u_seelen)G.soul=Math.min(1,G.soul+.005);
+  G.silver+=e.sc/110+(e.boss?90:e.elite?20:0);if(S.u.u_seelen)G.soul=Math.min(1,G.soul+.005);
   if(e.type==='splitter')for(let k=0;k<3;k++)spawn('mite',e.x+rand(-14,14),e.y+rand(-14,14));
   if(e.burnT>0&&S.fege)G.blasts.push({x:e.x,y:e.y,t:.05,d:40*S.dmg});
   if(e.aff&&e.aff.includes('Molten'))G.fx.push({k:'molten',x:e.x,y:e.y,t:.9});
@@ -1124,7 +1124,7 @@ function onKill(e,src){const j=meta.j[e.type]=meta.j[e.type]||{k:0},t0=jtier(e.t
   const ch=e.boss||e.elite?1:e.type==='rift'?.6:e.type==='gil'?.2:.004*(G.moon>0?3:1)*(1+S.luck);if(Math.random()<ch)dropItem(e.x,e.y,e.bounty?2:e.boss?1:0)}
 function onHurt(){if(S.thorn)blast(G.px,G.py,130,40*S.thorn*S.dmg);if(S.u.u_blut)blast(G.px,G.py,170,150*S.dmg)}
 function revive(){if(G.revives>0){G.revives--;G.hp=G.maxhp*.5;G.inv=2.5;G.flash=.5;banner('RANSŌTENGAI','Threads of reishi drag your body back to its feet');blast(G.px,G.py,300,200);A.ultOn();return true}return false}
-function onDeath(){const got=Math.floor((G.silver+G.t/2)*S.silverM),r0=rankOf()[0];meta.silver+=got;meta.xp+=got;const r1=rankOf()[0];saveMeta();
+function onDeath(){const got=Math.floor((G.silver+G.t/3)*S.silverM),r0=rankOf()[0];meta.silver+=got;meta.xp+=got;const r1=rankOf()[0];saveMeta();
   $('silverLine').textContent=`+${got} Silber · ${G.loot} item${G.loot===1?'':'s'} found`+(r1>r0?` · Rank ${r1} reached: ${r1-r0} tree point${r1-r0>1?'s':''}`:'')}
 
 /* ---------- waves and world events ---------- */
@@ -1150,7 +1150,7 @@ function worldEvent(){const t=G.t,o=[];let rifts=0;for(const e of G.enemies)if(e
   else if(ev==='bounty'){const e=spawn('adj',undefined,undefined,true);e.bounty=true;G.bounty=e;G.bountyT=50;banner('BOUNTY','A marked Adjuchas is circling. Bring it down before it loses interest.')}
   else if(ev==='storm'){G.storm=25;banner('SANDSTURM','Reishi floods the air. They are faster in it; so is your pool.')}
   else{G.moon=30;banner('BLUTMOND','The moon turns. They come in numbers, and they carry more.');A.roar()}}
-function spawner(dt){const t=G.t,cap=Math.min(40+t/3,240);G.spawnAcc+=dt*(1.2+t/40)*(G.boss?.55:1)*(G.chan?1.7:1)*(G.moon>0?1.8:1);
+function spawner(dt){const t=G.t,cap=Math.min(34+t/6,110);G.spawnAcc+=dt*(.9+t/70)*pulse()*(G.boss?.4:1)*(G.chan?1.7:1)*(G.moon>0?1.8:1);
   while(G.spawnAcc>=1){G.spawnAcc-=1;if(G.enemies.length>=cap)break;
     const w=[['grunt',10]];if(t>20)w.push(['crawler',5]);if(t>45)w.push(['spitter',3]);if(t>60)w.push(['bomber',2.2]);if(t>70)w.push(['splitter',1.6]);if(t>80)w.push(['brute',1.6+t/220]);if(t>100)w.push(['howler',.7]);
     if(t>130)w.push(['armor',1.4+t/400]);if(t>140)w.push(['sniper',1]);if(t>160)w.push(['adj',.5+t/450]);if(t>170)w.push(['wraith',1.2]);if(t>190)w.push(['worm',.9+t/500]);
@@ -1159,10 +1159,9 @@ function spawner(dt){const t=G.t,cap=Math.min(40+t/3,240);G.spawnAcc+=dt*(1.2+t/
   if(t>=G.nextGil){G.nextGil=t+70;for(let k=0;k<Math.min(G.gilN,4);k++)spawn('gil');G.gilN+=.5;banner('MENOS GRANDE','Watch the red line. Do not stand in it.');A.roar();G.shake=10}
   if(t>=G.nextBoss&&!G.boss){G.nextBoss=1e9;const ty=['arr','vasto','esp'][G.bossN%3];G.boss=spawn(ty);G.boss.name={arr:'ARRANCAR',vasto:'VASTO LORDE',esp:'ESPADA'}[ty];
     banner(G.boss.name,ty==='arr'?'A blade in the dark. Leave the circles before they close.':ty==='esp'?'It carries a number. It has never needed to release its sword.':'The apex of the hollow world has found you');A.roar();G.shake=18;G.flash=.3}
-  if(t>=G.nextWave){G.nextWave=t+40;wave()}
   if(t>=G.nextEvent){G.nextEvent=t+36;worldEvent()}
   if(t>=G.nextElite){G.nextElite=t+48;spawn(pick(t>130?['brute','armor','spitter','grunt','splitter']:['grunt','spitter']),undefined,undefined,true);text(G.px,G.py-60,'AN ELITE HUNTS YOU','#ffd27a',20,1.6)}
-  const ti=tierOf(t);if(ti!==G.tier){G.tier=ti;if(ti!==2&&ti!==4&&ti!==6)banner('THREAT '+ROMAN[Math.min(ti,15)],tierName(ti))}}
+  const ti=tierOf(t);if(ti!==G.tier){G.tier=ti;}}
 
 function sysUpdate(dt){
   for(let i=0;i<3;i++)if(G.cd[i]>0)G.cd[i]-=dt;
@@ -1313,18 +1312,18 @@ function qEvent(k,n=1,t){for(const q of meta.quests){if(q.done||q.k!==k||(q.t&&q
 fillQuests();
 
 /* ---------- the Espada ---------- */
-ET.esp={hp:5500,spd:250,r:19,dmg:26,xp:400,sc:12000,ult:60,mass:20,boss:1};BOSSY.esp=1;
+ET.esp={hp:4500,spd:250,r:19,dmg:19,xp:400,sc:12000,ult:60,mass:20,boss:1};BOSSY.esp=1;
 JRN.esp=['Espada','It carries a number, and it has never needed to release its sword. Until you.','At half spirit it releases. Keep Letzt Stil for the second form.'];
 AI.esp=(e,dt,d,nx,ny)=>{const face=Math.atan2(ny,nx),p2=e.p2;
   if(!p2&&e.hp<e.mhp*.5&&e.state===0){e.p2=1;e.state=10;e.st=1.6;e.hidden=true;banner('RESURRECCIÓN','It releases its sword');A.roar();G.shake=20;return[0,0]}
   if(e.state===10){e.st-=dt;if(Math.random()<.8){const a=rand(TAU),dd=rand(80,200);part(e.x+Math.cos(a)*dd,e.y+Math.sin(a)*dd,-Math.cos(a)*dd*2.5,-Math.sin(a)*dd*2.5,.4,rand(3,6),'#3df0c0')}
     if(e.st<=0){e.hidden=false;e.state=0;e.cd=.7;e.r=24;ring(e.x,e.y,20,620,.6,'#3df0c0',14);G.flash=.4;G.shake=18;if(d<170)hurt(e.dmg);for(let k=0;k<3;k++)spawn('adj',e.x+Math.cos(k*2.1)*260,e.y+Math.sin(k*2.1)*260)}return[0,0]}
   if(e.state===0){e.cd-=dt;if(e.cd<=0){e.side=-e.side;const r=Math.random();
-      if(r<.35){e.state=7;e.n=p2?4:2;e.st=.6;e.ca=face}else if(r<.6){e.state=9;e.st=p2?2.6:1.8;e.sa=rand(TAU);e.acc=0}
+      if(r<.35){e.state=7;e.n=p2?4:2;e.st=.7;e.ca=face}else if(r<.6){e.state=9;e.st=p2?2.6:1.8;e.sa=rand(TAU);e.acc=0}
       else if(r<.8){e.state=2;e.st=.8;e.ca=face;A.ceroCharge(.8)}else{e.state=6;e.n=p2?4:3;e.st=.3}}
     const rad=(d-220)/90;return[-ny*e.side*.9+nx*clamp(rad,-1,1),nx*e.side*.9+ny*clamp(rad,-1,1),e.spd*(p2?1.2:1)]}
   if(e.state===7){e.st-=dt;if(e.st>.2)e.ca=face;if(e.st<=0){e.state=8;e.st=.28;A.slash()}return[0,0]}
-  if(e.state===8){e.st-=dt;if(d<e.r+32)hurt(e.dmg*1.2);part(e.x,e.y,0,0,.3,12,'#3df0c0');if(e.st<=0){if(--e.n>0){e.state=7;e.st=p2?.38:.5;e.ca=face}else{e.state=0;e.cd=1+rand(.5)}}return[Math.cos(e.ca),Math.sin(e.ca),1500]}
+  if(e.state===8){e.st-=dt;if(d<e.r+32)hurt(e.dmg*1.2);part(e.x,e.y,0,0,.3,12,'#3df0c0');if(e.st<=0){if(--e.n>0){e.state=7;e.st=p2?.5:.6;e.ca=face}else{e.state=0;e.cd=1+rand(.5)}}return[Math.cos(e.ca),Math.sin(e.ca),1500]}
   if(e.state===9){e.st-=dt;e.acc+=dt;const arms=p2?3:2;while(e.acc>=.07){e.acc-=.07;e.sa+=.42;for(let k=0;k<arms;k++){const a=e.sa+k*TAU/arms;ebullet(e.x,e.y,Math.cos(a)*210,Math.sin(a)*210,6,e.dmg*.5)}}if(e.st<=0){e.state=0;e.cd=1+rand(.5)}return[0,0]}
   if(e.state===6){e.st-=dt;if(e.st<=0){for(let k=-1;k<=1;k++){const a=face+k*.12;ebullet(e.x,e.y,Math.cos(a)*520,Math.sin(a)*520,8,e.dmg*.6)}A.slash();if(--e.n>0)e.st=.22;else{e.state=0;e.cd=.9+rand(.5)}}return[nx*.3,ny*.3]}
   ceroStates(e,dt,face,p2?36:26,1.5);return[0,0]};
@@ -1373,7 +1372,7 @@ const _sh=sysHUD;sysHUD=function(u,pad,f){_sh(u,pad,f);ctx.textAlign='left';ctx.
   ctx.font=f(12);meta.quests.forEach((q,i)=>{ctx.fillStyle=q.done?'#ffd27a':'rgba(201,206,221,.75)';ctx.fillText((q.done?'✓ ':'· ')+q.txt+'  '+Math.min(q.p,q.n)+'/'+q.n,pad,pad+(130+i*16)*u)})};
 const _ds=drawStatus;drawStatus=function(e){if(e.type==='esp'){
     if(e.state===10){ctx.fillStyle='#020206';ctx.beginPath();ctx.arc(e.x,e.y,34+Math.sin(G.t*30)*3,0,TAU);ctx.fill();ctx.strokeStyle='#3df0c0';ctx.lineWidth=4;ctx.beginPath();ctx.arc(e.x,e.y,44+(1.6-e.st)*60,0,TAU);ctx.stroke();return}
-    if(e.state===7){ctx.strokeStyle=`rgba(255,51,85,${.2+.4*(1-e.st/.6)})`;ctx.lineWidth=(e.r+30)*2;ctx.lineCap='butt';ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.x+Math.cos(e.ca)*430,e.y+Math.sin(e.ca)*430);ctx.stroke()}}
+    if(e.state===7){ctx.strokeStyle=`rgba(255,51,85,${.2+.4*clamp(1-e.st/.7,0,1)})`;ctx.lineWidth=(e.r+30)*2;ctx.lineCap='butt';ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.x+Math.cos(e.ca)*430,e.y+Math.sin(e.ca)*430);ctx.stroke()}}
   _ds(e)};
 const _hb=hubBase;hubBase=function(el){_hb(el);fillQuests();const d=document.createElement('div');d.style.width='100%';
   d.innerHTML=`<div class="eyebrow" style="margin:6px 0 10px">Aufträge · contracts from the outpost</div><div class="grid3">`+meta.quests.map(q=>`<div class="pan"><i>${q.p}/${q.n} · ${q.rw} Silber</i><b>${q.txt}</b><span>Paid the moment it is done. A new contract replaces it.</span></div>`).join('')+`</div>`;el.appendChild(d)};
@@ -1391,6 +1390,29 @@ function bloom(){if(meta.glow===false)return;const w=cv.width>>2,h=cv.height>>2;
   bx.globalCompositeOperation='copy';bx.drawImage(cv,0,0,w,h);bx.globalCompositeOperation='multiply';bx.drawImage(bc,0,0);bx.drawImage(bc,0,0);
   bx2.globalCompositeOperation='copy';bx2.filter='blur(3px)';bx2.drawImage(bc,0,0);
   ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.5;ctx.drawImage(bc2,0,0,W,H);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
-newGame();
-showBest();requestAnimationFrame(frame);
+</script>
+<script>
+'use strict';
+/* ================= LOOP LAYER: surge and lull, Fokus streaks, Jagdrausch, fairer bosses ================= */
+// The desert breathes: 28 s of pressure, 12 s of quiet to gather reishi and choose where to walk. A named wave opens each surge.
+function pulse(){const lull=G.t>25&&(G.t+12)%40<12;if(lull&&!G.lull)for(const o of G.orbs)o.pull=true;if(!lull&&G.lull&&!G.boss&&G.t>35)wave();G.lull=lull;return lull?.2:1.25}
+const _cs4=calcStats;calcStats=function(){_cs4();S.xpM*=1.25;S.drawT0=S.drawT;S.spd0=S.spd;S.xpM0=S.xpM;S.regenR0=S.regenR;applyFlow()};
+function applyFlow(){const r=G.rausch||0,f=G.fokus||0;S.drawT=S.drawT0/(1+.05*f);S.spd=S.spd0*(1+.04*r);S.xpM=S.xpM0*(1+.15*r);S.regenR=S.regenR0+1.5*r}
+const _ng4=newGame;newGame=function(){_ng4();Object.assign(G,{fokus:0,fokT:0,rausch:0,lull:false,bossT:0});calcStats()};
+const _os4=onSpawn;onSpawn=function(e){_os4(e);if(!e.boss){e.hp*=1.25;e.mhp=e.hp}};
+// Fokus: consecutive Perfekt shots stack damage and draw speed. A sloppy full draw, or five idle seconds, drops it.
+const _fire4=fire;fire=function(c,fp){const perf=!fp&&c>=1&&(G.freePerf||G.t-G.fullAt<S.perfW);
+  if(!fp&&c>=1){if(perf){G.fokus=Math.min(5,G.fokus+1);G.fokT=5;if(G.fokus>1)text(G.px,G.py-56,'FOKUS ×'+G.fokus,'#8fd8ff',15+G.fokus*2,.8);if(A.ctx)A.tone('sine',880*Math.pow(2,G.fokus/12),A.now(),.3,.07,{rev:.6})}else G.fokus=0;applyFlow()}
+  const s0=G.soul;G.soul=(1+s0)*(1+.08*G.fokus)-1;_fire4(c,fp);G.soul=s0};
+const _su4=sysUpdate;sysUpdate=function(dt){_su4(dt);if(G.state!=='play')return;
+  if(G.fokus&&(G.fokT-=dt)<=0){G.fokus=0;applyFlow()}
+  const r=G.combo>=100?3:G.combo>=50?2:G.combo>=20?1:0;if(r!==G.rausch){if(r>G.rausch){text(G.px,G.py-74,'JAGDRAUSCH '+ROMAN[r-1],'#fff3a8',20+r*3,1.4);ring(G.px,G.py,10,120+r*40,.35,'#fff3a8',4);if(A.ctx)A.bell(A.now(),76+r*2,.1)}G.rausch=r;applyFlow()}
+  if(G.boss)G.bossT+=dt};
+const _fx4=sysDrawFx;sysDrawFx=function(){_fx4();const c=G.charge;if(c>0&&G.ultT<=0&&G.state==='play'){const bx=G.px+Math.cos(G.aim)*16,by=G.py+Math.sin(G.aim)*16,inW=c>=1&&G.t-G.fullAt<S.perfW;
+    ctx.strokeStyle=inW?'#ffffff':c>=1?'rgba(150,200,255,.25)':`rgba(150,220,255,${.2+.5*c})`;ctx.lineWidth=inW?4:1.5;ctx.beginPath();ctx.arc(bx,by,inW?30:30+(1-c)*46,0,TAU);ctx.stroke();
+    if(c<1){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(bx,by,30,0,TAU);ctx.stroke()}}
+  for(let i=0;i<G.fokus;i++){ctx.fillStyle='#8fd8ff';ctx.beginPath();ctx.arc(G.px+(i-(G.fokus-1)/2)*8,G.py+30,2.6,0,TAU);ctx.fill()}};
+const _sh4=sysHUD;sysHUD=function(u,pad,f){_sh4(u,pad,f);if(G.rausch){ctx.textAlign='right';ctx.fillStyle='#fff3a8';ctx.font=f(13,700);ctx.fillText('JAGDRAUSCH '+ROMAN[G.rausch-1]+' · +'+15*G.rausch+'% XP',W-pad,pad+134*u)}
+  if(G.lull&&!G.boss){ctx.textAlign='center';ctx.fillStyle='rgba(201,206,221,.6)';ctx.font=f(13);ctx.fillText('· the desert holds its breath ·',W/2,pad+22*u)}};
+newGame();showBest();requestAnimationFrame(frame);
 </script>
