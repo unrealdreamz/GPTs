@@ -151,7 +151,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
   <div class="ov veil" id="win" hidden>
     <div class="eyebrow">The apex is ash</div>
     <h2>The hunt is yours</h2>
-    <p class="lede">At the Garganta he is waiting. He looks at the bow, then at you, and says nothing. From him, that is praise.</p>
+    <p class="lede" id="winLede">At the Garganta he is waiting. He looks at the bow, then at you, and says nothing. From him, that is praise.</p>
     <div class="stats" id="winStats"></div>
     <div class="best" id="winLine" style="color:var(--gold);opacity:1"></div>
     <div class="row"><button id="winGo">Deeper into the night</button><button class="ghost" id="winHome">Return to the Outpost</button></div>
@@ -851,9 +851,9 @@ function render(){
   for(const r of G.rings){const k=1-r.life/r.max;ctx.globalAlpha=1-k;ctx.strokeStyle=r.col;ctx.lineWidth=r.w*(1-k*.6);ctx.beginPath();ctx.arc(r.x,r.y,lerp(r.r0,r.r1,1-(1-k)*(1-k)),0,TAU);ctx.stroke()}ctx.globalAlpha=1;
   drawBeams();sysDrawFx();
   for(const l of G.lances){const k=l.life/.28,ex=l.x+Math.cos(l.a)*1500,ey=l.y+Math.sin(l.a)*1500;for(const[w,c]of[[72*k,'rgba(60,150,255,.35)'],[34*k,'rgba(150,220,255,.8)'],[12*k,'#ffffff']]){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(ex,ey);ctx.stroke()}}
-  for(const b of G.ebul){ctx.fillStyle='rgba(255,40,80,.4)';ctx.beginPath();ctx.arc(b.x,b.y,b.r*2,0,TAU);ctx.fill();ctx.fillStyle='#ffd0d8';ctx.beginPath();ctx.arc(b.x,b.y,b.r*.7,0,TAU);ctx.fill()}
+  for(const b of G.ebul){ctx.fillStyle=b.q?'rgba(60,150,255,.5)':'rgba(255,40,80,.4)';ctx.beginPath();ctx.arc(b.x,b.y,b.r*2,0,TAU);ctx.fill();ctx.fillStyle=b.q?'#eaf6ff':'#ffd0d8';ctx.beginPath();ctx.arc(b.x,b.y,b.r*.7,0,TAU);ctx.fill()}
   ctx.globalCompositeOperation='source-over';
-  for(const b of G.ebul){ctx.strokeStyle='#ff3355';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.stroke()}
+  for(const b of G.ebul){ctx.strokeStyle=b.q?'#5fc8ff':'#ff3355';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.stroke()}
   ctx.textAlign='center';for(const t of G.texts){ctx.globalAlpha=Math.min(1,t.life/t.max*2);ctx.font=`700 ${t.size}px Rajdhani,sans-serif`;ctx.lineWidth=3;ctx.strokeStyle='rgba(5,8,20,.8)';ctx.strokeText(t.s,t.x,t.y);ctx.fillStyle=t.col;ctx.fillText(t.s,t.x,t.y)}ctx.globalAlpha=1;
   // screen space
   ctx.setTransform(DPR,0,0,DPR,0,0);bloom();
@@ -1158,7 +1158,7 @@ function worldEvent(){const t=G.t,o=[];let rifts=0;for(const e of G.enemies)if(e
   else if(ev==='bounty'){const e=spawn('adj',undefined,undefined,true);e.bounty=true;G.bounty=e;G.bountyT=50;banner('BOUNTY','A marked Adjuchas is circling. Bring it down before it loses interest.')}
   else if(ev==='storm'){G.storm=25;banner('SANDSTURM','Reishi floods the air. They are faster in it; so is your pool.')}
   else{G.moon=30;banner('BLUTMOND','The moon turns. They come in numbers, and they carry more.');A.roar()}}
-function spawner(dt){const t=G.t,cap=Math.min(26+t/9,80);G.spawnAcc+=dt*(.7+t/100)*pulse()*(G.boss?.4:1)*(G.chan?1.7:1)*(G.moon>0?1.8:1);
+function spawner(dt){if(G.duel)return;const t=G.t,cap=Math.min(26+t/9,80);G.spawnAcc+=dt*(.7+t/100)*pulse()*(G.boss?.4:1)*(G.chan?1.7:1)*(G.moon>0?1.8:1);
   while(G.spawnAcc>=1){G.spawnAcc-=1;if(G.enemies.length>=cap)break;
     const w=[['grunt',10]];if(t>20)w.push(['crawler',5]);if(t>45)w.push(['spitter',3]);if(t>60)w.push(['bomber',2.2]);if(t>70)w.push(['splitter',1.6]);if(t>80)w.push(['brute',1.6+t/220]);if(t>100)w.push(['howler',.7]);
     if(t>130)w.push(['armor',1.4+t/400]);if(t>140)w.push(['sniper',1]);if(t>160)w.push(['adj',.5+t/450]);if(t>170)w.push(['wraith',1.2]);if(t>190)w.push(['worm',.9+t/500]);
@@ -1247,7 +1247,7 @@ function renderHub(){const run=hubFrom==='play';if(run&&hubTab==='base')hubTab='
   for(const b of $('tabs').children)b.onclick=()=>{hubTab=b.dataset.t;renderHub()};
   const pts=treePts(),rk=rankOf();$('hubInfo').textContent=`${rankTitle(rk[0])} · rank ${rk[0]} (${rk[1]}/${rk[2]}) · ${meta.silver} Silber · ${pts} tree point${pts===1?'':'s'} free`;
   $('hubClose').textContent=run?'Back to the hunt':'Close';
-  ({base:hubBase,load:hubLoad,tree:hubTree,inv:hubInv,char:hubChar,journal:hubJournal})[hubTab]($('hubBody'))}
+  ({base:hubBase,load:hubLoad,tree:hubTree,inv:hubInv,char:hubChar,journal:hubJournal,letters:hubLetters})[hubTab]($('hubBody'))}
 function hubBase(el){el.innerHTML=`<p class="lede">Der Vorposten: a buried Quincy outpost under the dunes. What you carry back in Silber rebuilds it, and it sends you out stronger.</p><div class="grid3">`+
   BASE.map(b=>{const l=meta.base[b.id]||0,c=COST[l];return`<div class="pan"><i>${'◆'.repeat(l)}${'◇'.repeat(5-l)} · level ${l}</i><b>${b.name}</b><span>${b.desc}</span><button class="ghost buy" data-b="${b.id}" ${l>=5||meta.silver<c?'disabled':''}>${l>=5?'Complete':'Build · '+c+' Silber'}</button></div>`}).join('')+`</div>`;
   el.querySelectorAll('.buy').forEach(b=>b.onclick=()=>{const id=b.dataset.b,l=meta.base[id]||0;if(l<5&&meta.silver>=COST[l]){meta.silver-=COST[l];meta.base[id]=l+1;saveMeta();A.init();A.levelup();renderHub()}})}
@@ -1513,7 +1513,7 @@ function antithesis(){if(G.sch!=='A'||G.antiT>0)return false;const e=nearest(G.p
   G.bolts.push({x1:G.px,y1:G.py,x2:e.x,y2:e.y,life:.25});hitEnemy(e,120*S.dmg+e.mhp*.1,null,true);if(A.ctx)A.chime();return true}
 
 /* ---------- Sklaverei: the souls of great prey ---------- */
-const _ok6=onKill;onKill=function(e,src){_ok6(e,src);if(e.boss||e.elite||(e.type==='gil'&&Math.random()<.4))G.orbs.push({x:e.x,y:e.y,vx:rand(-50,50),vy:rand(-50,50),xp:0,t:0,kind:4,core:e.boss?'boss':e.type})};
+const _ok6=onKill;onKill=function(e,src){_ok6(e,src);if((e.boss&&e.type!=='vater')||e.elite||(e.type==='gil'&&Math.random()<.4))G.orbs.push({x:e.x,y:e.y,vx:rand(-50,50),vy:rand(-50,50),xp:0,t:0,kind:4,core:e.boss?'boss':e.type})};
 function takeCore(o){const m={boss:['boss',9,'Apex soul: +10% arrow damage'],gil:['cero',3,'Cero-Pfeil: a cero rides your full draws'],brute:['hp',9,'Bulk: +10 spirit'],splitter:['hp',9,'Bulk: +10 spirit'],
     armor:['pierce',3,'Mask-plate: +1 pierce'],spitter:['far',5,'Far-sight: long shots hit harder'],sniper:['far',5,'Far-sight: long shots hit harder']}[o.core]||['dmg',8,'Essence: +3% arrow damage'];
   let k=m[0],msg=m[2];if((G.tro[k]||0)>=m[1]){k='dmg';msg='Essence: +3% arrow damage'}if(k==='dmg'&&(G.tro.dmg||0)>=8){G.reishi=S.rmax;text(G.px,G.py-64,'SKLAVEREI · reishi restored','#ff9db0',16,1.6);return}G.tro[k]=(G.tro[k]||0)+1;calcStats();if(k==='hp')G.hp=Math.min(G.maxhp,G.hp+10);
@@ -1668,7 +1668,79 @@ const _sh7=sysHUD;sysHUD=function(u,pad,f){_sh7(u,pad,f);
   if(G.tip){ctx.globalAlpha=clamp(Math.min(G.tip.t,6-G.tip.t)*1.5,0,1);ctx.textAlign='center';ctx.font=f(18);ctx.fillStyle='#f4f6fb';ctx.fillText(G.tip.s,W/2,H-pad-128*u);ctx.globalAlpha=1}
   // a boss gets an entrance
   const rem=G.introEnd-performance.now();if(rem>0&&G.introB){const k=clamp(Math.min(rem,2600-rem)/350,0,1),bh=H*.13*k,n=BOSSN[G.introB.type]||[G.introB.name,''];ctx.fillStyle='#000';ctx.fillRect(0,0,W,bh);ctx.fillRect(0,H-bh,W,bh);ctx.fillStyle=`rgba(4,5,14,${.45*k})`;ctx.fillRect(0,bh,W,H-bh*2);
-    ctx.globalAlpha=k;ctx.textAlign='center';ctx.fillStyle='#ff8296';ctx.font=f(15,700);ctx.fillText('· · ·  A GREAT HOLLOW  · · ·',W/2,H*.4);ctx.fillStyle='#f4f6fb';ctx.font=f(78,900,'Cinzel');ctx.shadowColor='rgba(255,51,85,.9)';ctx.shadowBlur=30;ctx.fillText(n[0],W/2,H*.52);ctx.shadowBlur=0;
+    ctx.globalAlpha=k;ctx.textAlign='center';ctx.fillStyle='#ff8296';ctx.font=f(15,700);ctx.fillText(G.introB.type==='vater'?'· · ·  THE LAST LESSON  · · ·':'· · ·  A GREAT HOLLOW  · · ·',W/2,H*.4);ctx.fillStyle='#f4f6fb';ctx.font=f(78,900,'Cinzel');ctx.shadowColor='rgba(255,51,85,.9)';ctx.shadowBlur=30;ctx.fillText(n[0],W/2,H*.52);ctx.shadowBlur=0;
     ctx.font=f(20);ctx.fillStyle='#c9cedd';ctx.fillText(n[1],W/2,H*.52+38*u);ctx.globalAlpha=1}};
+</script>
+<script>
+'use strict';
+/* ================= FATHER LAYER: his voice, his letters, mask breaks on bosses, and the last lesson ================= */
+meta=Object.assign({mem:{},read:0},meta);meta.st.bosses=meta.st.bosses||0;
+/* ---------- remembered lines ---------- */
+function recall(k,s){if(G.memSeen[k]||(meta.mem[k]||0)>=3||G.memo)return;G.memSeen[k]=1;meta.mem[k]=(meta.mem[k]||0)+1;G.memo={s,t:5.5}}
+/* ---------- letters ---------- */
+const jTotal=()=>{let n=0;for(const k in JRN)n+=jtier(k);return n};
+const LETTERS=[
+ [()=>meta.st.hunts>=1,'After the first night','You came back. I had made arrangements for the other outcome. Cancel nothing. You go again tomorrow.'],
+ [()=>meta.st.bosses>=1,'On the Koloss','A great hollow is dead, I am told. It was large. That is all it was. Do not mistake size for difficulty a second time.'],
+ [()=>meta.st.hunts>=5,'Five nights','Your draw is still slow, and you still look at your feet when you step. The desert does not care where your feet are. Neither should you.'],
+ [()=>meta.st.wins>=1,'On the Vasto Lorde','I will say this once: that was not nothing. Now put on the Sanrei glove. Jagdstufe II. Finish that hunt and I will come and see for myself.'],
+ [()=>jTotal()>=20,'Your Jagdbuch','The Jagdbuch is thorough. Your handwriting is not. Your grandfather kept his in ink and never crossed out a line.'],
+ [()=>rankOf()[0]>=10,'Titles','They are calling you Jagdarmee at the outpost. Titles are for people who need reminding what they are.'],
+ [()=>!!meta.trueEnd,'After the last lesson','You struck me. Twice, by my count; you will say three. The archive is unlocked. Everything your grandfather wrote is yours to read. I have nothing further to teach you about the bow.'],
+ [()=>meta.st.hunts>=20&&meta.st.wins>=3,'The last letter','I will not write again unless there is something to correct. Take the silence the way you have learned to take everything else out there.']];
+const lettersOpen=()=>LETTERS.filter(l=>l[0]());
+TABS.push(['letters','Letters']);
+function hubLetters(el){const ls=lettersOpen();meta.read=ls.length;saveMeta();el.innerHTML=`<p class="lede">He does not visit the outpost. He writes, briefly, when something has changed.</p>`+(ls.length?`<div class="grid3">`+ls.map(l=>`<div class="pan"><i>Vater</i><b>${l[1]}</b><span>${l[2]}</span></div>`).reverse().join('')+`</div>`:'<div class="pan"><span>Nothing yet. Survive a night.</span></div>')+`<div class="best">${ls.length} of ${LETTERS.length} letters</div>`}
+const _rh9=renderHub;renderHub=function(){_rh9();const n=lettersOpen().length-meta.read;if(n>0)for(const b of $('tabs').children)if(b.dataset.t==='letters')b.textContent='Letters · '+n+' new'};
+const _sb9=showBest;showBest=function(){_sb9();const n=lettersOpen().length-meta.read;$('outpost').textContent=n>0?'The Outpost · a letter':'The Outpost'};
+
+/* ---------- the last lesson ---------- */
+ET.vater={hp:7000,spd:240,r:13,dmg:22,xp:500,sc:20000,ult:0,mass:10,boss:1};BOSSN.vater=['DER VATER','"Show me what the desert made of you."'];
+AI.vater=(e,dt,d,nx,ny)=>{const face=Math.atan2(ny,nx),p2=e.hp<e.mhp*.5,q=()=>{G.ebul[G.ebul.length-1].q=1};
+  if(p2&&!e.p2){e.p2=1;banner('LETZT STIL','"Then I will stop holding back."');ring(e.x,e.y,20,400,.5,'#bfe9ff',10);G.flash=.3;if(A.ctx)A.ultOn()}
+  if(e.state===0){e.cd-=dt;if(e.cd<=0){const r=Math.random();if(r<.3){e.state=31;e.n=p2?5:3;e.st=.45;e.ca=face}else if(r<.55){e.state=32;e.st=p2?2:1.4;e.acc=0}else if(r<.8){e.state=33;e.st=.25}else{e.state=34;e.st=1.4;e.tx=G.px;e.ty=G.py}}
+    const rad=(d-400)/100;return[-ny*e.side*.8+nx*clamp(rad,-1,1),nx*e.side*.8+ny*clamp(rad,-1,1),e.spd*(p2?1.15:1)]}
+  if(e.state===31){e.st-=dt;if(e.st>.12)e.ca=face;if(e.st<=0){for(const k of p2?[-.12,0,.12]:[0]){ebullet(e.x,e.y,Math.cos(e.ca+k)*720,Math.sin(e.ca+k)*720,7,e.dmg);q()}A.shoot(1,false);if(--e.n>0){e.st=.4;e.ca=face}else{e.state=0;e.cd=.8+rand(.5);e.side=-e.side}}return[-ny*e.side*.4,nx*e.side*.4]}
+  if(e.state===32){e.st-=dt;e.acc+=dt;while(e.acc>=.055){e.acc-=.055;const a=face+rand(-.13,.13);ebullet(e.x,e.y,Math.cos(a)*430,Math.sin(a)*430,5,e.dmg*.45);q()}if(e.st<=0){e.state=0;e.cd=1+rand(.5)}return[-ny*e.side*.5,nx*e.side*.5]}
+  if(e.state===33){e.st-=dt;if(e.st<=0){burst(e.x,e.y,12,200,.3,5,'#9fdcff');const a=face+Math.PI+e.side*(1.2+rand(.6)),R=rand(300,420);e.x=G.px+Math.cos(a)*R;e.y=G.py+Math.sin(a)*R;ring(e.x,e.y,50,8,.2,'#ffffff',3);e.side=-e.side;e.state=31;e.n=1;e.st=.3;e.ca=Math.atan2(G.py-e.y,G.px-e.x);if(A.ctx)A.dash()}return[0,0]}
+  if(e.state===34){e.st-=dt;if(e.st<=0){ring(e.tx,e.ty,20,230,.4,'#ffffff',12);burst(e.tx,e.ty,30,400,.5,6,'#8fd8ff');G.shake=Math.max(G.shake,14);if(A.ctx)A.kill(true,0);if(Math.hypot(G.px-e.tx,G.py-e.ty)<205)hurt(e.dmg*1.6);e.state=0;e.cd=.9+rand(.5)}return[-ny*e.side*.6,nx*e.side*.6]}
+  return[nx,ny]};
+DRAW.vater=(e,r,wob)=>{ctx.fillStyle='#f4f6fb';ctx.beginPath();ctx.moveTo(r*.3,-r*.95);ctx.lineTo(-r*2.4,-r*.8+wob*r*2);ctx.lineTo(-r*1.7,0);ctx.lineTo(-r*2.4,r*.8-wob*r*2);ctx.lineTo(r*.3,r*.95);ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,0,r*.95,r*.85,0,0,TAU);ctx.fill();ctx.strokeStyle='#8a93ad';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#dfe3ee';ctx.beginPath();ctx.arc(r*.15,0,r*.5,0,TAU);ctx.fill();
+  ctx.fillStyle='#5fc8ff';ctx.fillRect(r*.45,-r*.3,r*.12,r*.22);ctx.fillRect(r*.45,r*.08,r*.12,r*.22);
+  ctx.globalCompositeOperation='lighter';if(e.p2)for(const s of[-1,1])for(let i=0;i<5;i++){const a=Math.PI+s*(.4+i*.24);ctx.strokeStyle=`rgba(150,220,255,${.6-i*.08})`;ctx.lineWidth=6-i;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*(80-i*8),Math.sin(a)*(80-i*8));ctx.stroke()}
+  for(const[w,c]of[[9,'rgba(60,150,255,.4)'],[3,'rgba(150,220,255,.95)']]){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.arc(r*.3,0,r*2.1,-1,1);ctx.stroke()}ctx.globalCompositeOperation='source-over'};
+
+/* ---------- wrappers ---------- */
+const _ng9=newGame;newGame=function(){_ng9();Object.assign(G,{memSeen:{},memo:null,vaterAt:0,vaterDone:0,duel:0})};
+const _sg9=startGame;startGame=function(){const was=G.state;_sg9();if(G.state==='play'&&meta.st.hunts)banner('NIGHT '+(meta.st.hunts+1),'Hold the left button. Pull the reishi into a bow. Let go when you mean it.')};
+$('start').onclick=()=>startGame();$('again').onclick=()=>startGame();
+const _os9=onSpawn;onSpawn=function(e){_os9(e);if(e.type==='gil')recall('gil','“A Menos is many small failures standing in a line.”');if(e.boss&&e.type!=='vater')recall('boss','“Large things die the same way. Through the mask.”')};
+const _oh9=onHurt;onHurt=function(){_oh9();recall('hit','“A Quincy who is touched has already made a mistake.”')};
+const _ah9=arrowHit;arrowHit=function(e,a,mask){const d0=a.dmg;if(e.stag>0)a.dmg*=1.6;_ah9(e,a,mask);a.dmg=d0;
+  if(mask&&e.boss&&e.hp>0&&a.kind===0&&!(e.stag>0)&&!e.hidden){e.mb=(e.mb||0)+(a.full?16+9*(a.tier||0):5);
+    if(e.mb>=100){e.mb=0;e.stag=3.5;e.stunT=3.5;e.state=0;e.cd=.6;G.slow=Math.max(G.slow,.5);G.shake=Math.max(G.shake,16);G.flash=Math.max(G.flash,.25);pride(10);
+      const mx=e.x+Math.cos(e.ang)*e.r*.42,my=e.y+Math.sin(e.ang)*e.r*.42;burst(mx,my,30,480,.9,Math.max(5,e.r*.16),'#ffffff',1);ring(mx,my,10,e.r*2.6+80,.4,'#ffffff',8);
+      text(e.x,e.y-e.r-40,e.type==='vater'?'GUARD BROKEN':'MASKE GEBROCHEN','#ffffff',26,1.6);if(A.ctx){A.kill(true,0);A.bell(A.now(),88,.12)}}}};
+const _ue9=updEnemy;updEnemy=function(e,dt){if(e.stag>0)e.stag-=dt;_ue9(e,dt)};
+const _ok9=onKill;onKill=function(e,src){_ok9(e,src);if(e.boss){meta.st.bosses++;
+    if(e.type==='vasto'&&G.pendWin&&G.stufe>=2&&!G.vaterDone){G.pendWin=0;G.vaterAt=G.t+4;banner('THE GARGANTA OPENS','Someone is standing in it. He is adjusting his glasses.')}
+    if(e.type==='vater'){G.duel=0;G.vaterDone=1;G.pendWin=1;meta.trueEnd=1;banner('ENOUGH','He lowers his bow.')}}};
+const _su9=sysUpdate;sysUpdate=function(dt){const st0=G.state;_su9(dt);
+  if(G.state==='win'&&st0!=='win')$('winLede').textContent=G.vaterDone?'He lowers his bow and adjusts his glasses. “Adequate.” Then he holds the Garganta open and, for once, lets you walk through first.':G.stufe>=2?'At the Garganta he is waiting. He looks at the bow, then at you, and says nothing. From him, that is praise.':'At the Garganta he is waiting. He looks at the bow, then at you, and says nothing. From him, that is praise. Come back with the glove on, and he may have more to say.';
+  if(G.state!=='play')return;
+  if(G.vaterAt&&G.t>=G.vaterAt&&!G.boss){G.vaterAt=0;G.duel=1;G.ebul.length=0;for(const e of G.enemies.slice()){burst(e.x,e.y,8,200,.6,e.r*.7,'#0a0a10',2);G.enemies.splice(G.enemies.indexOf(e),1)}const a=rand(TAU);G.boss=spawn('vater',G.px+Math.cos(a)*420,G.py+Math.sin(a)*420);G.boss.name='DER VATER';bossIntro(G.boss);G.nextBoss=1e9;if(A.ctx)A.ultOn()}
+  if(G.hp<G.maxhp*.3)recall('low','“Lower the bow. Blood hardens when the hands are still.”');
+  if(G.kit.volley&&G.reishi<3)recall('dry','“You are standing in an ocean and complaining of thirst.”');
+  if(tierS()>=2)recall('stolz','“Pride is not a feeling. It is a standard.”');if(G.seen.merge)recall('merge','“Leave nothing alive long enough to be eaten.”');
+  if(G.memo&&(G.memo.t-=dt)<=0)G.memo=null};
+const _ds9=drawStatus;drawStatus=function(e){if(e.type==='vater'){
+    if(e.state===31){ctx.strokeStyle='rgba(150,220,255,.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.x+Math.cos(e.ca)*1200,e.y+Math.sin(e.ca)*1200);ctx.stroke()}
+    if(e.state===34){const k=1-e.st/1.4;ctx.fillStyle=`rgba(95,200,255,${.08+.2*k})`;ctx.beginPath();ctx.arc(e.tx,e.ty,205,0,TAU);ctx.fill();ctx.strokeStyle='rgba(200,235,255,.9)';ctx.lineWidth=2;star(e.tx,e.ty,205,-Math.PI/2);ctx.beginPath();ctx.arc(e.tx,e.ty,205*k,0,TAU);ctx.stroke()}}
+  if(e.stag>0){ctx.strokeStyle=`rgba(255,255,255,${.5+.4*Math.sin(G.t*20)})`;ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(e.x,e.y,e.r+14,0,TAU);ctx.stroke();ctx.setLineDash([])}
+  _ds9(e)};
+const _sh9=sysHUD;sysHUD=function(u,pad,f){_sh9(u,pad,f);
+  if(G.boss){const w=Math.min(560*u,W-pad*2)*.5,x=(W-w)/2,y=pad+34*u,st=G.boss.stag>0;bar(x,y,w,4*u,st?G.boss.stag/3.5:(G.boss.mb||0)/100,st?'#fff3a8':'#ffffff','rgba(6,8,20,.6)');ctx.textAlign='center';ctx.font=f(10,700);ctx.fillStyle=st?'#fff3a8':'rgba(244,246,251,.7)';ctx.fillText(st?'BROKEN · strike now':G.boss.type==='vater'?'GUARD':'MASK',W/2,y+15*u)}
+  if(G.memo){ctx.globalAlpha=clamp(Math.min(G.memo.t,5.5-G.memo.t)*1.4,0,1);ctx.textAlign='center';ctx.font=`italic 500 ${Math.round(19*u)}px Cinzel,serif`;ctx.fillStyle='#dfe9ff';ctx.fillText(G.memo.s,W/2,H*.64);ctx.font=f(11,700);ctx.fillStyle='#5fc8ff';ctx.fillText('· VATER, REMEMBERED ·',W/2,H*.64+20*u);ctx.globalAlpha=1}};
 newGame();showBest();requestAnimationFrame(frame);
 </script>
