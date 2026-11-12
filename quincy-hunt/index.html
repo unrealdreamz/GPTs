@@ -108,11 +108,11 @@ button:disabled{opacity:.4;cursor:not-allowed}
   <div class="ov" id="title">
     <div class="eyebrow">Hueco Mundo · the endless night</div>
     <h1>QUINCY HUNT</h1>
-    <p class="lede">White sand to every horizon and the air is thick with reishi. No orders, no captains. Draw the bow and thin the herd until something big enough comes to stop you.</p>
+    <p class="lede">White sand to every horizon, and all of it is reishi. No orders, no captains. Drink the desert, break their masks from as far away as you can see them, and let nothing touch you.</p>
     <div class="keys">
       <div><kbd>WASD</kbd> move</div>
-      <div><kbd>LMB</kbd> hold to draw, release to loose</div>
-      <div><kbd>RMB</kbd> Licht Regen volley, marks prey</div>
+      <div><kbd>LMB</kbd> draw; hold on to overdraw</div>
+      <div><kbd>RMB</kbd> Licht Regen, spends reishi</div>
       <div><kbd>Space</kbd> Hirenkyaku dash</div>
       <div><kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd> Gintō skills</div>
       <div><kbd>F</kbd> Letzt Stil</div>
@@ -170,7 +170,7 @@ const pick=a=>a[Math.random()*a.length|0];
 function hash2(x,y){let h=(x*374761393+y*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296}
 let W=1,H=1,DPR=1,zoom=1,VW=1,VH=1,UI=1;
 function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=app.clientWidth||innerWidth;H=app.clientHeight||innerHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;
-  zoom=clamp(Math.max(W/1500,H/900),.45,2);VW=W/zoom;VH=H/zoom;UI=clamp(Math.min(W/1100,H/760),.62,1.3)}
+  zoom=clamp(Math.max(W/1700,H/1020),.4,2);VW=W/zoom;VH=H/zoom;UI=clamp(Math.min(W/1100,H/760),.62,1.3)}
 addEventListener('resize',resize);resize();
 
 /* ================= AUDIO ================= */
@@ -352,7 +352,7 @@ let best={score:0,time:0,kills:0},meta={unlocked:['A'],sel:'A',mv:.62,sv:.6};
 try{best=JSON.parse(localStorage.getItem('quincyhunt.best'))||best;meta=Object.assign(meta,JSON.parse(localStorage.getItem('quincyhunt.meta'))||{})}catch(e){}
 function saveMeta(){try{localStorage.setItem('quincyhunt.meta',JSON.stringify(meta))}catch(e){}}
 const SCHRIFT=[
- {id:'A',name:'The Archer',desc:'Balanced. The Perfekt window is 60% wider.'},
+ {id:'A',name:'The Archer',desc:'Balanced. The mask on every hollow is a 30% larger target.'},
  {id:'R',name:'The Rain',desc:'Licht Regen costs half and the reishi pool is 150. Bow damage −15%.',unlock:['time',180,'survive 3:00']},
  {id:'H',name:'The Step',desc:'+1 dash. Every dash ends in a ring of arrows.',unlock:['kills',400,'purify 400 in one hunt']},
  {id:'B',name:'The Blood',desc:'140 spirit and every 12th kill heals. The draw is 15% slower.',unlock:['boss',1,'purify a boss']},
@@ -393,7 +393,7 @@ function calcStats(){const u=G.up,L=k=>u[k]||0,c=G.sch;S={dmg:(1+.2*L('dmg'))*(c
 function newGame0(){Object.assign(G,{t:0,px:0,py:0,hp:100,maxhp:100,reishi:50,ult:0,ultT:0,xp:0,lvl:1,xpNeed:6,pendLv:0,kills:0,score:0,combo:0,comboT:0,bestCombo:0,
   charge:0,fullAt:-9,wasL:false,shotCd:0,dashes:2,dashCd:0,dashT:0,ddx:1,ddy:0,dashHit:[],inv:0,aim:0,capeX:0,capeY:20,walk:0,mvx:0,mvy:0,
   enemies:[],arrows:[],ebul:[],parts:[],orbs:[],texts:[],rings:[],after:[],up:{},
-  shake:0,freeze:0,slow:0,spawnAcc:0,nextGil:115,gilN:1,nextBoss:210,nextRift:40,nextWell:65,nextElite:70,wells:[],stuck:[],prints:[],stains:[],lances:[],blasts:[],kickX:0,kickY:0,rerolls:2,stepAcc:0,foot:1,chan:false,relic:false,seen:{},sch:meta.sel,bossN:0,boss:null,tier:0,eid:1,rainAcc:0,seekT:0,hurtFlash:0,ultFire:0,banner:null,camX:0,camY:0,flash:0});
+  shake:0,freeze:0,slow:0,spawnAcc:0,nextGil:115,gilN:1,nextBoss:210,nextRift:40,nextWell:65,nextElite:70,wells:[],stuck:[],prints:[],stains:[],lances:[],blasts:[],kickX:0,kickY:0,vx:0,vy:0,rerolls:2,stepAcc:0,foot:1,chan:false,relic:false,seen:{},sch:meta.sel,bossN:0,boss:null,tier:0,eid:1,rainAcc:0,seekT:0,hurtFlash:0,ultFire:0,banner:null,camX:0,camY:0,flash:0});
   if(G.sch==='B')G.hp=G.maxhp=140;if(G.sch==='X')G.hp=G.maxhp=70;calcStats()}
 newGame0();
 function setState(s){G.state=s;$('title').hidden=s!=='title';$('lvl').hidden=s!=='levelup';$('pause').hidden=s!=='pause';$('dead').hidden=s!=='dead';$('hub').hidden=s!=='hub';$('win').hidden=s!=='win';
@@ -425,7 +425,7 @@ function nearest(x,y,maxD,ex){let b=null,bd=maxD*maxD;for(const e of G.enemies){
 
 /* ---------- player actions ---------- */
 function tryDash(){if(G.dashes<=0||G.dashT>0)return;let dx=G.mvx,dy=G.mvy;if(!dx&&!dy){dx=Math.cos(G.aim);dy=Math.sin(G.aim)}
-  G.ddx=dx;G.ddy=dy;G.dashT=.13;G.dashes--;G.inv=Math.max(G.inv,.28);G.dashHit=[];A.dash();burst(G.px,G.py,10,160,.35,4,'#9fdcff')}
+  G.ddx=dx;G.ddy=dy;G.dashT=.16;G.dashes--;G.inv=Math.max(G.inv,.28);G.dashHit=[];A.dash();burst(G.px,G.py,10,160,.35,4,'#9fdcff')}
 function tryUlt(){if(G.ult<100||G.ultT>0)return;G.ult=0;G.ultT=S.ultDur;G.flash=.5;G.shake=14;A.ultOn();banner('LETZT STIL','The bow draws itself. Hold fire.');
   ring(G.px,G.py,20,520,.6,'#bfe9ff',10);for(const e of G.enemies){const dx=e.x-G.px,dy=e.y-G.py,d=Math.hypot(dx,dy)||1;if(d<460){e.kx+=dx/d*700/e.mass;e.ky+=dy/d*700/e.mass;hitEnemy(e,40,null,false)}}}
 function fire(c,forcePerfect){const full=c>=1,perfect=forcePerfect||(full&&G.t-G.fullAt<S.perfW);
@@ -445,7 +445,7 @@ function dashEnd(){const n=S.sprung?16:G.sch==='H'?10:0;if(!n)return;const o=ran
 function armorMul(e,a){if(e.type!=='armor')return 1;if(a.full)return 1.6;if(Math.random()<.35)text(e.x,e.y-e.r-18,'KLANG','#9aa3bd',12,.4);return .25}
 function blast(x,y,R,dmg,except){ring(x,y,10,R,.28,'#bfe9ff',6);burst(x,y,22,380,.4,5,'#8fd8ff');G.shake=Math.max(G.shake,7);
   for(const o of G.enemies.slice())if(o!==except&&!o.hidden&&o.hp>0&&Math.hypot(o.x-x,o.y-y)<R+o.r)hitEnemy(o,dmg,{vx:o.x-x,vy:o.y-y,kills:0,blast:true},false)}
-function hurt(d){if(G.inv>0||G.dashT>0||G.state!=='play')return;d*=S.dr*(G.ultT>0?.5:1);G.hp-=d;G.inv=.75;G.shake=Math.max(G.shake,12);G.hurtFlash=.5;G.combo=0;A.hurt();
+function hurt(d){if(G.inv>0||G.dashT>0||G.state!=='play')return;d*=S.dr*(G.ultT>0?.5:1)*(mouse.l||mouse.r?1:.6);G.hp-=d;G.inv=.75;G.shake=Math.max(G.shake,12);G.hurtFlash=.5;G.combo=0;A.hurt();
   burst(G.px,G.py,14,220,.5,4,'#ff5a70');onHurt();if(G.hp<=0&&!revive())die()}
 function die(){G.hp=0;setState('dead');onDeath();A.intensity=0;burst(G.px,G.py,60,400,1.2,5,'#bfe9ff');
   const sc=Math.round(G.score),nb=sc>best.score;if(nb){best={score:sc,time:G.t|0,kills:G.kills};try{localStorage.setItem('quincyhunt.best',JSON.stringify(best))}catch(e){}}
@@ -471,7 +471,7 @@ const ET={
 function spawnDist(){return Math.hypot(VW,VH)/2+90}
 function spawn(type,x,y,elite){const d=ET[type],t=G.t,hm=1+t/150+Math.pow(t/300,2)*.5,em=elite?1:0;
   if(x===undefined){const a=rand(TAU),r=spawnDist()+(type==='gil'?60:0);x=G.px+Math.cos(a)*r;y=G.py+Math.sin(a)*r}
-  const e={type,x,y,kx:0,ky:0,hp:d.hp*hm*(d.boss?1+G.bossN*.35:1)*(em?6:1),r:d.r*(em?1.35:1),spd:d.spd*(1+Math.min(t/900,.35)),dmg:d.dmg*(1+t/750),xp:d.xp*(em?8:1),sc:d.sc*(em?8:1),ultv:d.ult*(em?4:1),mass:d.mass*(em?3:1),
+  const e={type,x,y,kx:0,ky:0,hp:d.hp*hm*(d.boss?1+G.bossN*.35:1)*(em?6:1),r:d.r*(em?1.35:1),spd:d.spd*(1.08+Math.min(t/900,.35)),dmg:d.dmg*(1.2+t/750),xp:d.xp*(em?8:1),sc:d.sc*(em?8:1),ultv:d.ult*(em?4:1),mass:d.mass*(em?3:1),
     ang:0,t:rand(10),state:0,st:0,cd:rand(1,3),flash:0,id:G.eid++,side:Math.random()<.5?-1:1,ca:0,glow:0,hidden:false,boss:!!d.boss,elite:!!elite,slash:0,n:0,tx:0,ty:0};
   e.mhp=e.hp;G.enemies.push(e);onSpawn(e);return e}
 function aimSlash(e){const a=rand(TAU);e.tx=G.px+G.mvx*25+Math.cos(a)*45;e.ty=G.py+G.mvy*25+Math.sin(a)*45}
@@ -607,7 +607,7 @@ function update(dt){
   if(G.dashT>0){G.dashT-=dt;G.px+=G.ddx*1750*dt;G.py+=G.ddy*1750*dt;G.after.push({x:G.px,y:G.py,a:G.aim,life:.25});
     if(S.slice)for(const e of G.enemies)if(!e.hidden&&!G.dashHit.includes(e.id)&&Math.hypot(e.x-G.px,e.y-G.py)<e.r+34){G.dashHit.push(e.id);G.reishi=Math.min(S.rmax,G.reishi+4);
       ring(e.x,e.y,4,50,.2,'#ffffff',3);hitEnemy(e,45*S.slice*S.dmg,{vx:G.ddx,vy:G.ddy},true);if(S.sprung&&e.hp<=0)G.dashes=Math.min(S.dashMax,G.dashes+1)}if(G.dashT<=0)dashEnd()}
-  else{const sp=S.spd*(drawing?.5:1)*(ult?1.25:1);G.px+=mx*sp*dt;G.py+=my*sp*dt;if(ml){G.walk+=dt*10;G.stepAcc+=sp*dt;if(G.stepAcc>28){G.stepAcc=0;G.foot=-G.foot;G.prints.push({x:G.px-my*5*G.foot,y:G.py+mx*5*G.foot+6,a:Math.atan2(my,mx),life:5});if(G.prints.length>50)G.prints.shift()}}}
+  else{const sp=S.spd*(drawing?.72:1)*(ult?1.25:1),ak=Math.min(1,dt*(ml?12:4.5));G.vx+=(mx*sp-G.vx)*ak;G.vy+=(my*sp-G.vy)*ak;G.px+=G.vx*dt;G.py+=G.vy*dt;if(ml){G.walk+=dt*10;G.stepAcc+=sp*dt;if(G.stepAcc>28){G.stepAcc=0;G.foot=-G.foot;G.prints.push({x:G.px-my*5*G.foot,y:G.py+mx*5*G.foot+6,a:Math.atan2(my,mx),life:5});if(G.prints.length>50)G.prints.shift()}}}
   if(G.dashes<S.dashMax){G.dashCd+=dt;if(G.dashCd>=S.dashRe){G.dashCd=0;G.dashes++}}
   if(G.inv>0)G.inv-=dt;if(G.hurtFlash>0)G.hurtFlash-=dt;if(G.flash>0)G.flash-=dt;if(G.shotCd>0)G.shotCd-=dt;
   // cape lags behind
@@ -633,7 +633,7 @@ function update(dt){
     if(a.full&&Math.random()<.8)part(a.x,a.y,rand(-30,30),rand(-30,30),.3,rand(2,a.perfect?6:4),a.perfect?'#ffffff':'#8fd8ff');
     let dead=a.life<=0;
     if(!dead)for(const e of G.enemies){if(e.hidden||a.hit.includes(e.id))continue;if(!segHit(ox,oy,a.x,a.y,e.x,e.y,e.r+a.r))continue;
-      a.hit.push(e.id);const crit=a.perfect||Math.random()<S.crit;arrowHit(e,a,crit);
+      a.hit.push(e.id);arrowHit(e,a,isMask(e,a,ox,oy));
       if(a.expl){a.expl=false;blast(e.x,e.y,70+22*S.expl,a.dmg*.5,e)}
       if(a.pierce>0)a.pierce--;else if(a.rico>0){const n=nearest(a.x,a.y,420,a.hit);if(n){a.rico--;const s=Math.hypot(a.vx,a.vy),d=Math.atan2(n.y-a.y,n.x-a.x);a.vx=Math.cos(d)*s;a.vy=Math.sin(d)*s;a.life=Math.max(a.life,.5);ring(a.x,a.y,3,22,.15,'#ffffff',2)}else dead=true}else dead=true;
       if(dead)break}
@@ -670,7 +670,7 @@ function update(dt){
     if(d<120){w.p+=dt/5;G.chan=true;G.reishi=Math.min(S.rmax,G.reishi+dt*10);if(Math.random()<.6)part(w.x+rand(-110,110),w.y+rand(-110,110),0,rand(-170,-60),.6,rand(2,4),'#8fd8ff')}else w.p=Math.max(0,w.p-dt*.08);
     if(w.p>=1){G.wells.splice(i,1);ring(w.x,w.y,20,420,.6,'#bfe9ff',10);G.flash=.3;G.ult=Math.min(100,G.ult+30);G.reishi=S.rmax;G.score+=500;qEvent('well');banner('WELLSPRING CLAIMED','The reishi answers you');G.pendLv++;G.relic=true;A.ultOn();openLevel(true);return}
     if(w.life<=0)G.wells.splice(i,1)}
-  G.camX=lerp(G.camX,G.px+(wx-G.px)*.14,Math.min(1,dt*8));G.camY=lerp(G.camY,G.py+(wy-G.py)*.14,Math.min(1,dt*8));
+  G.look=lerp(G.look||.14,mouse.l&&G.ultT<=0?.3:.14,Math.min(1,dt*3));G.camX=lerp(G.camX,G.px+(wx-G.px)*G.look,Math.min(1,dt*8));G.camY=lerp(G.camY,G.py+(wy-G.py)*G.look,Math.min(1,dt*8));
   spawner(dt);sysUpdate(dt);if(G.state!=='play')return;
   A.intensity=G.ultT>0?4:G.boss?3:(G.tier>=2||G.enemies.length>28)?2:1;
 }
@@ -693,7 +693,7 @@ function drawGround(){const x0=G.camX-VW/2,y0=G.camY-VH/2,ZN=(G.zone||0)%3;
   ctx.imageSmoothingEnabled=true;if(!dunePat){dunePat=ctx.createPattern(duneTile,'repeat');dunePat.setTransform(new DOMMatrix().scaleSelf(9,9))}ctx.fillStyle=dunePat;ctx.fillRect(x0-2,y0-2,VW+4,VH+4);
   // decor
   const C=240;for(let cy=Math.floor((y0-140)/C);cy*C<y0+VH+140;cy++)for(let cx=Math.floor((x0-140)/C);cx*C<x0+VW+140;cx++){const h=hash2(cx,cy);if(h>(ZN===1?.55:.3))continue;
-    const px=cx*C+hash2(cx+91,cy)*C,py=cy*C+hash2(cx,cy+57)*C;if(h<(ZN===1?.42:ZN===2?.04:.13))drawTree(px,py,cx,cy);else if(h<(ZN===1?.5:.24))drawRock(px,py,cx,cy);else drawBones(px,py,cx,cy)}
+    const px=cx*C+hash2(cx+91,cy)*C,py=cy*C+hash2(cx,cy+57)*C;if(h<(ZN===1?.42:ZN===2?.04:.13))drawTreeS(px,py,cx,cy);else if(h<(ZN===1?.5:.24))drawRock(px,py,cx,cy);else drawBones(px,py,cx,cy)}
   // landmarks: the remains of things much larger than you
   const B=1300;for(let cy=Math.floor((y0-400)/B);cy*B<y0+VH+400;cy++)for(let cx=Math.floor((x0-400)/B);cx*B<x0+VW+400;cx++){const h=hash2(cx*3+7,cy*5+11);if(h>(ZN===2?.95:.5))continue;
     const px=cx*B+hash2(cx+5,cy+2)*B*.7,py=cy*B+hash2(cx+1,cy+8)*B*.7;if(h<(ZN===2?.1:.24))drawRibs(px,py,cx,cy);else drawRuin(px,py,cx,cy)}}
@@ -887,7 +887,7 @@ function drawHUD(){const u=UI,pad=Math.max(16,18*u),f=(s,w=600,fam='Rajdhani')=>
       ctx.fillStyle='rgba(6,8,20,.72)';ctx.fillRect(x,y,cw,cw);ctx.strokeStyle=ev?'#ffd27a':'rgba(95,200,255,.5)';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,cw-1,cw-1);
       ctx.fillStyle=ev?'#ffd27a':'#f4f6fb';ctx.font=f(12,700);ctx.fillText(ABBR[id],x+cw/2,y+cw*.52);if(!ev){ctx.fillStyle='#5fc8ff';ctx.font=f(9,700);ctx.fillText(ROMAN[G.up[id]-1],x+cw/2,y+cw*.9)}})}
   // opening hints
-  if(G.t<50){const hs=['Hold LMB to draw the bow. Release to loose.','Release as the ring closes for a PERFEKT shot. Chain them to build Fokus.','Hold RMB to pour Licht Regen. It burns reishi.','Volley marks hollows. A charged arrow cashes the marks in.','SPACE is Hirenkyaku. Q, E and R are your Gintō skills.'],tt=G.t%10;
+  if(G.t<50){const hs=['Hold LMB to draw. One full arrow, one hollow.','Aim for the mask. A centred shot shatters it for far more damage.','Reishi comes from the dead and from quartz trees. Draw the bow near them to drink.','Keep holding a full draw to overdraw. It burns reishi and hits far harder.','RMB volleys and Q E R spend reishi. SPACE is Hirenkyaku. Lower the bow to harden your blood.'],tt=G.t%10;
     ctx.globalAlpha=clamp(Math.min(tt,10-tt)*1.5,0,1);ctx.textAlign='center';ctx.font=f(18);ctx.fillStyle='#f4f6fb';ctx.fillText(hs[Math.min(4,G.t/10|0)],W/2,H-pad-128*u);ctx.globalAlpha=1}
   // compass to things worth walking to
   const tg=[];for(const e of G.enemies){if(e.type==='rift')tg.push([e.x,e.y,'#c77dff','RIFT']);else if(e.elite)tg.push([e.x,e.y,'#ffd27a',e.bounty?'BOUNTY':'ELITE']);else if(e.boss)tg.push([e.x,e.y,'#ff3355',e.name])}for(const w of G.wells)tg.push([w.x,w.y,'#5fc8ff','WELLSPRING']);sysCompass(tg);
@@ -938,9 +938,9 @@ const LBL=k=>AFF[k]?AFF[k][0]:XLBL[k];
 const POOL={bogen:['dmg','chargeDmg','rainDmg','drawSpd','crit','critDmg','perfW'],hand:['drawSpd','crit','critDmg','skillDmg','cdr','chargeDmg','rainDmg'],mantel:['hp','dr','spd','dashCd','regen','magnet'],kreuz:['ultGain','xp','silver','luck','reishiMax','hp'],ginto:['skillDmg','cdr','reishiMax','reishiGain','rainDmg','magnet']};
 const UNIQ=[
  {id:'sturm',slot:'bogen',name:'Sturmbogen',desc:'Licht Regen looses 60% more arrows.'},
- {id:'jager',slot:'bogen',name:'Jägerschwur',desc:'Perfekt arrows split in three on first impact.'},
- {id:'sanrei',slot:'hand',name:'Sanrei-Handschuh',desc:'The Perfekt window is doubled and Perfekt shots hit 40% harder.'},
- {id:'schatten',slot:'mantel',name:'Schattenmantel',desc:'+1 dash charge. A Perfekt shot refunds a dash.'},
+ {id:'jager',slot:'bogen',name:'Jägerschwur',desc:'A full-draw arrow that breaks a mask splits in three.'},
+ {id:'sanrei',slot:'hand',name:'Sanrei-Handschuh',desc:'Masks are easier to strike and shatter 40% harder.'},
+ {id:'schatten',slot:'mantel',name:'Schattenmantel',desc:'+1 dash charge. Killing with a mask break refunds a dash.'},
  {id:'blut',slot:'mantel',name:'Blutmantel',desc:'Being struck detonates your blood for heavy damage around you.'},
  {id:'penta',slot:'kreuz',name:'Pentakreuz',desc:'Letzt Stil lasts 4 seconds longer.'},
  {id:'seelen',slot:'kreuz',name:'Seelenfresser',desc:'Every kill adds 0.5% arrow damage this hunt, up to +100%.'},
@@ -999,7 +999,7 @@ function mods(){const m={},add=(k,v)=>{m[k]=(m[k]||0)+v};
 UPG.find(u=>u.id==='expl').name='Sprengpfeil';UPG.find(u=>u.id==='mag').name='Reishi-Sog';
 UPG.find(u=>u.id==='rain').desc='Volley arrows hit 30% harder and cost 15% less reishi.';
 EVO.find(v=>v.id==='stern').need='Licht Regen III + Reishi-Sog I';EVO.find(v=>v.id==='kette').need='Sprengpfeil II + Abpraller I';
-EVO.find(v=>v.id==='lanze').desc='Perfekt shots also loose a lance of light: instant, wide, heavy damage through everything in line.';
+EVO.find(v=>v.id==='lanze').desc='A fully overdrawn arrow also looses a lance of light: instant, wide, heavy damage through everything in line.';
 UPG.push(
  {id:'rsplit',name:'Zwillingsregen',sub:'Twin rain',desc:'The volley gains another stream of arrows.',max:3},
  {id:'rmark',name:'Brandmal',sub:'Brand',desc:'Volley hits can stack 2 more marks. Charged arrows cash marks in for +20% damage each.',max:3},
@@ -1116,7 +1116,7 @@ function updEnemy(e,dt){
     if(e.aff.includes('Arcane')){e.acd=(e.acd||3)-dt;if(e.acd<=0){e.acd=3.4;const o=rand(TAU);for(let k=0;k<10;k++)ebullet(e.x,e.y,Math.cos(o+k/10*TAU)*190,Math.sin(o+k/10*TAU)*190,6,e.dmg*.5)}}}
   const s0=e.spd;e.spd*=m;updEnemy0(e,dt);e.spd=s0}
 function onKill(e,src){const j=meta.j[e.type]=meta.j[e.type]||{k:0},t0=jtier(e.type);j.k++;if(jtier(e.type)>t0&&JRN[e.type])text(G.px,G.py-70,'JAGDBUCH: '+JRN[e.type][0].toUpperCase()+' '+ROMAN[t0],'#ffd27a',18,1.8);
-  G.silver+=e.sc/110+(e.boss?90:e.elite?20:0);if(S.u.u_seelen)G.soul=Math.min(1,G.soul+.005);
+  G.silver+=e.sc/150+(e.boss?90:e.elite?20:0);if(S.u.u_seelen)G.soul=Math.min(1,G.soul+.005);
   if(e.type==='splitter')for(let k=0;k<3;k++)spawn('mite',e.x+rand(-14,14),e.y+rand(-14,14));
   if(e.burnT>0&&S.fege)G.blasts.push({x:e.x,y:e.y,t:.05,d:40*S.dmg});
   if(e.aff&&e.aff.includes('Molten'))G.fx.push({k:'molten',x:e.x,y:e.y,t:.9});
@@ -1124,7 +1124,7 @@ function onKill(e,src){const j=meta.j[e.type]=meta.j[e.type]||{k:0},t0=jtier(e.t
   const ch=e.boss||e.elite?1:e.type==='rift'?.6:e.type==='gil'?.2:.004*(G.moon>0?3:1)*(1+S.luck);if(Math.random()<ch)dropItem(e.x,e.y,e.bounty?2:e.boss?1:0)}
 function onHurt(){if(S.thorn)blast(G.px,G.py,130,40*S.thorn*S.dmg);if(S.u.u_blut)blast(G.px,G.py,170,150*S.dmg)}
 function revive(){if(G.revives>0){G.revives--;G.hp=G.maxhp*.5;G.inv=2.5;G.flash=.5;banner('RANSŌTENGAI','Threads of reishi drag your body back to its feet');blast(G.px,G.py,300,200);A.ultOn();return true}return false}
-function onDeath(){const got=Math.floor((G.silver+G.t/3)*S.silverM),r0=rankOf()[0];meta.silver+=got;meta.xp+=got;const r1=rankOf()[0];saveMeta();
+function onDeath(){const got=Math.floor((G.silver+G.t/4)*S.silverM),r0=rankOf()[0];meta.silver+=got;meta.xp+=got;const r1=rankOf()[0];saveMeta();
   $('silverLine').textContent=`+${got} Silber · ${G.loot} item${G.loot===1?'':'s'} found`+(r1>r0?` · Rank ${r1} reached: ${r1-r0} tree point${r1-r0>1?'s':''}`:'')}
 
 /* ---------- waves and world events ---------- */
@@ -1150,7 +1150,7 @@ function worldEvent(){const t=G.t,o=[];let rifts=0;for(const e of G.enemies)if(e
   else if(ev==='bounty'){const e=spawn('adj',undefined,undefined,true);e.bounty=true;G.bounty=e;G.bountyT=50;banner('BOUNTY','A marked Adjuchas is circling. Bring it down before it loses interest.')}
   else if(ev==='storm'){G.storm=25;banner('SANDSTURM','Reishi floods the air. They are faster in it; so is your pool.')}
   else{G.moon=30;banner('BLUTMOND','The moon turns. They come in numbers, and they carry more.');A.roar()}}
-function spawner(dt){const t=G.t,cap=Math.min(34+t/6,110);G.spawnAcc+=dt*(.9+t/70)*pulse()*(G.boss?.4:1)*(G.chan?1.7:1)*(G.moon>0?1.8:1);
+function spawner(dt){const t=G.t,cap=Math.min(26+t/9,80);G.spawnAcc+=dt*(.7+t/100)*pulse()*(G.boss?.4:1)*(G.chan?1.7:1)*(G.moon>0?1.8:1);
   while(G.spawnAcc>=1){G.spawnAcc-=1;if(G.enemies.length>=cap)break;
     const w=[['grunt',10]];if(t>20)w.push(['crawler',5]);if(t>45)w.push(['spitter',3]);if(t>60)w.push(['bomber',2.2]);if(t>70)w.push(['splitter',1.6]);if(t>80)w.push(['brute',1.6+t/220]);if(t>100)w.push(['howler',.7]);
     if(t>130)w.push(['armor',1.4+t/400]);if(t>140)w.push(['sniper',1]);if(t>160)w.push(['adj',.5+t/450]);if(t>170)w.push(['wraith',1.2]);if(t>190)w.push(['worm',.9+t/500]);
@@ -1268,7 +1268,7 @@ function hubInv(el){const eq=SLOTS.map(s=>{const it=meta.eq[s];return`<button cl
   if($('itRe'))$('itRe').onclick=()=>{const c=salv(selIt)*2;if(meta.silver<c)return;meta.silver-=c;selIt.aff=rollAff(selIt.slot,selIt.rar,selIt.ilvl);done()};
   $('salAll').onclick=()=>{meta.bag=meta.bag.filter(it=>{if(it.rar===0){meta.silver+=salv(it);return false}return true});selIt=null;done()}}
 function hubChar(el){calcStats();const pc=v=>Math.round(v*100)+'%',rk=rankOf(),sc=SCHRIFT.find(s=>s.id===(hubFrom==='play'?G.sch:meta.sel));
-  const rows=[['Spirit',G.maxhp],['Arrow damage',pc(S.dmg)],['Charged shot',pc(S.chargeM)],['Volley',pc(S.rainD)],['Draw time',S.drawT.toFixed(2)+' s'],['Perfekt window',S.perfW.toFixed(2)+' s'],['Crit chance',pc(S.crit)],['Crit damage',pc(S.critM)],
+  const rows=[['Spirit',G.maxhp],['Arrow damage',pc(S.dmg)],['Charged shot',pc(S.chargeM)],['Volley',pc(S.rainD)],['Draw time',S.drawT.toFixed(2)+' s'],['Mask hit zone',pc(S.maskR)],['Crit chance',pc(S.crit)],['Crit damage',pc(S.critM)],
    ['Extra arrows',S.multi],['Pierce',S.pierce],['Move speed',Math.round(S.spd)],['Dash charges',S.dashMax],['Reishi pool',S.rmax],['Reishi regen',S.regenR.toFixed(1)+' / s'],['Volley cost',S.rainCost.toFixed(1)+' / s'],['Skill damage',pc(S.skillD)],
    ['Skill cooldowns',pc(S.cdr)],['Damage taken',pc(S.dr)],['Spirit regen',S.regen.toFixed(1)+' / s'],['Letzt Stil gain',pc(S.ultGain)],['Experience',pc(S.xpM)],['Silber',pc(S.silverM)],['Find quality',pc(1+S.luck)]];
   el.innerHTML=`<h2>Schrift ${sc.id} · ${sc.name}</h2><div class="best">Rank ${rk[0]} · ${meta.silver} Silber · skills ${meta.skills.map((s,i)=>'QER'[i]+' '+SKILLS[s].name).join(' · ')}</div><div class="stat">`+rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')+`</div>`+
@@ -1299,12 +1299,12 @@ UNIQ.push(
  {id:'opfer',slot:'kreuz',name:'Opferkreuz',desc:'+60% arrow damage. −40% spirit.'},
  {id:'gluck',slot:'kreuz',name:'Glückskreuz',desc:'Elites and bosses drop a second item.'},
  {id:'doppel',slot:'ginto',name:'Doppelröhre',desc:'A skill has a 25% chance to be ready again at once.'},
- {id:'sturmr',slot:'ginto',name:'Sturmröhre',desc:'After casting a skill, your next full draw is a Perfekt.'});
+ {id:'sturmr',slot:'ginto',name:'Sturmröhre',desc:'After casting a skill, your next arrow is drawn at once.'});
 
 /* ---------- contracts ---------- */
 function newQuest(){const seen=Object.keys(meta.j).filter(k=>JRN[k]&&!BOSSY[k]&&k!=='mite');
   if(Math.random()<.4&&seen.length){const t=pick(seen),n=pick([30,60,100]);return{k:'kill',t,n,p:0,rw:n*2,txt:`Purify ${n} ${JRN[t][0]}`}}
-  return Object.assign({p:0},pick([{k:'perf',n:25,rw:120,txt:'Land 25 Perfekt shots'},{k:'rift',n:2,rw:150,txt:'Seal 2 Garganta'},{k:'elite',n:4,rw:160,txt:'Purify 4 elites'},{k:'boss',n:1,rw:200,txt:'Purify a boss'},
+  return Object.assign({p:0},pick([{k:'perf',n:40,rw:120,txt:'Break 40 masks'},{k:'rift',n:2,rw:150,txt:'Seal 2 Garganta'},{k:'elite',n:4,rw:160,txt:'Purify 4 elites'},{k:'boss',n:1,rw:200,txt:'Purify a boss'},
    {k:'well',n:2,rw:140,txt:'Claim 2 wellsprings'},{k:'item',n:5,rw:120,txt:'Recover 5 pieces of equipment'},{k:'skill',n:30,rw:100,txt:'Cast 30 skills'},{k:'time',n:300,rw:150,txt:'Survive 5:00 in one hunt'}]))}
 function fillQuests(){meta.quests=(meta.quests||[]).filter(q=>!q.done);let g=0;while(meta.quests.length<3&&g++<20){const q=newQuest();if(!meta.quests.some(o=>o.txt===q.txt))meta.quests.push(q)}}
 function qEvent(k,n=1,t){for(const q of meta.quests){if(q.done||q.k!==k||(q.t&&q.t!==t))continue;q.p=k==='time'?Math.max(q.p,Math.floor(n)):q.p+n;
@@ -1393,26 +1393,85 @@ function bloom(){if(meta.glow===false)return;const w=cv.width>>2,h=cv.height>>2;
 </script>
 <script>
 'use strict';
-/* ================= LOOP LAYER: surge and lull, Fokus streaks, Jagdrausch, fairer bosses ================= */
-// The desert breathes: 28 s of pressure, 12 s of quiet to gather reishi and choose where to walk. A named wave opens each surge.
+/* ================= FEEL LAYER: the Quincy fantasy from first principles =================
+   Marksman: aim for the mask, shoot from range, hold the draw to line things up.
+   The world is the quiver: reishi comes from the dead and from quartz trees, and everything strong spends it.
+   Stolz (pride): precise, untouched play builds it; being struck shatters it. */
+const XPK=1.35,COMMON={grunt:1,crawler:1,spitter:1,bomber:1,mite:1,wraith:1,sniper:1,howler:1,splitter:1};
+const COSTS={heizen:20,wolke:15,gritz:20,sternfall:30,schatten:15,sprenger:35,anhaben:30,sklaverei:0};
+for(const id in SKILLS){SKILLS[id].cd=Math.round(SKILLS[id].cd*.6);if(COSTS[id])SKILLS[id].desc+=` Costs ${COSTS[id]} reishi.`}
+AFF.perfW[0]='% mask hit zone';
 function pulse(){const lull=G.t>25&&(G.t+12)%40<12;if(lull&&!G.lull)for(const o of G.orbs)o.pull=true;if(!lull&&G.lull&&!G.boss&&G.t>35)wave();G.lull=lull;return lull?.2:1.25}
-const _cs4=calcStats;calcStats=function(){_cs4();S.xpM*=1.25;S.drawT0=S.drawT;S.spd0=S.spd;S.xpM0=S.xpM;S.regenR0=S.regenR;applyFlow()};
-function applyFlow(){const r=G.rausch||0,f=G.fokus||0;S.drawT=S.drawT0/(1+.05*f);S.spd=S.spd0*(1+.04*r);S.xpM=S.xpM0*(1+.15*r);S.regenR=S.regenR0+1.5*r}
-const _ng4=newGame;newGame=function(){_ng4();Object.assign(G,{fokus:0,fokT:0,rausch:0,lull:false,bossT:0});calcStats()};
-const _os4=onSpawn;onSpawn=function(e){_os4(e);if(!e.boss){e.hp*=1.25;e.mhp=e.hp}};
-// Fokus: consecutive Perfekt shots stack damage and draw speed. A sloppy full draw, or five idle seconds, drops it.
-const _fire4=fire;fire=function(c,fp){const perf=!fp&&c>=1&&(G.freePerf||G.t-G.fullAt<S.perfW);
-  if(!fp&&c>=1){if(perf){G.fokus=Math.min(5,G.fokus+1);G.fokT=5;if(G.fokus>1)text(G.px,G.py-56,'FOKUS ×'+G.fokus,'#8fd8ff',15+G.fokus*2,.8);if(A.ctx)A.tone('sine',880*Math.pow(2,G.fokus/12),A.now(),.3,.07,{rev:.6})}else G.fokus=0;applyFlow()}
-  const s0=G.soul;G.soul=(1+s0)*(1+.08*G.fokus)-1;_fire4(c,fp);G.soul=s0};
-const _su4=sysUpdate;sysUpdate=function(dt){_su4(dt);if(G.state!=='play')return;
-  if(G.fokus&&(G.fokT-=dt)<=0){G.fokus=0;applyFlow()}
-  const r=G.combo>=100?3:G.combo>=50?2:G.combo>=20?1:0;if(r!==G.rausch){if(r>G.rausch){text(G.px,G.py-74,'JAGDRAUSCH '+ROMAN[r-1],'#fff3a8',20+r*3,1.4);ring(G.px,G.py,10,120+r*40,.35,'#fff3a8',4);if(A.ctx)A.bell(A.now(),76+r*2,.1)}G.rausch=r;applyFlow()}
-  if(G.boss)G.bossT+=dt};
-const _fx4=sysDrawFx;sysDrawFx=function(){_fx4();const c=G.charge;if(c>0&&G.ultT<=0&&G.state==='play'){const bx=G.px+Math.cos(G.aim)*16,by=G.py+Math.sin(G.aim)*16,inW=c>=1&&G.t-G.fullAt<S.perfW;
-    ctx.strokeStyle=inW?'#ffffff':c>=1?'rgba(150,200,255,.25)':`rgba(150,220,255,${.2+.5*c})`;ctx.lineWidth=inW?4:1.5;ctx.beginPath();ctx.arc(bx,by,inW?30:30+(1-c)*46,0,TAU);ctx.stroke();
-    if(c<1){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(bx,by,30,0,TAU);ctx.stroke()}}
-  for(let i=0;i<G.fokus;i++){ctx.fillStyle='#8fd8ff';ctx.beginPath();ctx.arc(G.px+(i-(G.fokus-1)/2)*8,G.py+30,2.6,0,TAU);ctx.fill()}};
-const _sh4=sysHUD;sysHUD=function(u,pad,f){_sh4(u,pad,f);if(G.rausch){ctx.textAlign='right';ctx.fillStyle='#fff3a8';ctx.font=f(13,700);ctx.fillText('JAGDRAUSCH '+ROMAN[G.rausch-1]+' · +'+15*G.rausch+'% XP',W-pad,pad+134*u)}
-  if(G.lull&&!G.boss){ctx.textAlign='center';ctx.fillStyle='rgba(201,206,221,.6)';ctx.font=f(13);ctx.fillText('· the desert holds its breath ·',W/2,pad+22*u)}};
+const tierS=()=>Math.min(4,(G.stolz||0)/25|0);
+function applyFlow(){const t=tierS();S.spd=S.spd0*(1+.03*t);S.xpM=S.xpM0*(1+.12*t)}
+function pride(n){const t0=tierS();G.stolz=clamp(G.stolz+n,0,100);const t1=tierS();if(t1!==t0){applyFlow();if(t1>t0){text(G.px,G.py-74,'STOLZ '+ROMAN[t1-1],'#fff3a8',18+t1*3,1.4);ring(G.px,G.py,10,110+t1*30,.35,'#fff3a8',4);if(A.ctx)A.bell(A.now(),74+t1*2,.09)}}}
+const _cs5=calcStats;calcStats=function(){_cs5();S.xpM*=XPK;S.maskR=(1+(G.m.perfW||0)/100)*(G.sch==='A'?1.3:1)*(S.u.u_sanrei?1.4:1);S.maskM=2.5*(S.u.u_sanrei?1.4:1);
+  S.regenR=Math.max(0,S.regenR-2);S.dashRe*=.8;S.spd0=S.spd;S.xpM0=S.xpM;applyFlow()};
+const _ng5=newGame;newGame=function(){_ng5();Object.assign(G,{stolz:0,over:0,stepT:0,instant:0,vx:0,vy:0,drained:new Map(),lull:false,bossT:0,killT:0,look:.14,reishi:50});calcStats()};
+// common prey stays one-arrow prey; the desert escalates through what it sends, not by inflating them
+const _os5=onSpawn;onSpawn=function(e){_os5(e);if(COMMON[e.type]){const t=G.t,hm=1+t/150+Math.pow(t/300,2)*.5;e.hp=e.hp/hm*(1+t/360);e.mhp=e.hp}};
+const _de5=dashEnd;dashEnd=function(){_de5();G.stepT=.7;G.vx=G.ddx*S.spd*1.4;G.vy=G.ddy*S.spd*1.4};
+
+/* ---------- the bow: draw, hold, overdraw ---------- */
+fire=function(c,forced){const full=c>=1,tier=forced?1:full?Math.min(2,Math.floor(G.over)):0;G.over=0;
+  const base=full?[60,115,190][tier]*S.chargeM:12+28*c,pierce=(full?2+tier*2:c>=.5?1:0)+S.pierce,spd=(full?1900:1250+500*c)*S.aspd,n=1+S.multi,sm=(1+G.soul)*(1+.1*tierS());
+  const shots=S.u.u_echo&&full&&!forced&&++G.echoN>=4?(G.echoN=0,2):1;
+  for(let s=0;s<shots;s++)for(let i=0;i<n;i++){const off=(i-(n-1)/2)*.1+s*.03,a=G.aim+off,side=n>1&&Math.abs(off)>.01;
+    G.arrows.push({x:G.px+Math.cos(G.aim)*18,y:G.py+Math.sin(G.aim)*18,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,dmg:base*S.dmg*sm*(side?.6:1),pierce,r:full?9+tier*4:5,len:full?54+tier*28:26,life:1.5,hit:[],full,tier,perfect:tier>0,rico:S.rico,expl:full&&S.expl>0,kills:0,kind:0,ox:G.px,oy:G.py})}
+  A.shoot(c,tier>0);if(full){const k=10+tier*9;G.kickX-=Math.cos(G.aim)*k;G.kickY-=Math.sin(G.aim)*k}
+  if(tier===2&&S.lanze&&!forced){const lx=G.px+Math.cos(G.aim)*20,ly=G.py+Math.sin(G.aim)*20,ex=lx+Math.cos(G.aim)*1500,ey=ly+Math.sin(G.aim)*1500,src={vx:Math.cos(G.aim),vy:Math.sin(G.aim),kills:0};
+    for(const e of G.enemies.slice())if(!e.hidden&&segHit(lx,ly,ex,ey,e.x,e.y,e.r+24))hitEnemy(e,190*S.dmg*sm*jbonus(e),src,true);G.lances.push({x:lx,y:ly,a:G.aim,life:.28});G.flash=Math.max(G.flash,.12);A.lance()}
+  G.shake=Math.max(G.shake,full?5+tier*4:1.5);const bx=G.px+Math.cos(G.aim)*24,by=G.py+Math.sin(G.aim)*24;
+  if(full){ring(bx,by,6,54+tier*36,.25,tier?'#ffffff':'#8fd8ff',3+tier*2);for(let i=0;i<9+tier*9;i++){const a=G.aim+Math.PI+rand(-.9,.9);part(bx,by,Math.cos(a)*rand(60,300),Math.sin(a)*rand(60,300),rand(.2,.5),rand(2,5),'#8fd8ff')}
+    if(tier&&!forced)text(G.px,G.py-34,tier===2?'HEILIG PFEIL':'ÜBERZUG','#ffffff',16+tier*4,.8)}};
+function isMask(e,a,ox,oy){if(e.type==='rift'||e.type==='worm'||e.type==='gil'&&a.kind!==0)return false;const ca=Math.cos(e.ang),sa=Math.sin(e.ang);if(a.vx*ca+a.vy*sa>0)return false;
+  const s=Math.hypot(a.vx,a.vy)||1;return segHit(ox,oy,a.x+a.vx/s*40,a.y+a.vy/s*40,e.x+ca*e.r*.42,e.y+sa*e.r*.42,e.r*.45*S.maskR+1.5)}
+arrowHit=function(e,a,mask){const bow=a.kind===0;let d=a.dmg*armorMul(e,a)*jbonus(e),crit=false,far=0;
+  if(mask){d*=bow?S.maskM:1.5;crit=true}else if(Math.random()<S.crit){d*=S.critM;crit=true}
+  if(bow){far=clamp((Math.hypot(e.x-a.ox,e.y-a.oy)-350)/500,0,1);d*=1+.6*far}
+  if(S.u.u_eis&&e.slowT>0)d*=1.3;
+  if(a.kind===1){e.mark=Math.min(S.markMax,(e.mark||0)+(S.sintflut?2:1));if(S.kblitz&&++G.shockN>=8){G.shockN=0;chain(e,30*S.dmg)}if(S.frost&&Math.random()<.12)e.slowT=2}
+  else if(bow){if(e.mark){d*=1+.2*e.mark;G.reishi=Math.min(S.rmax,G.reishi+e.mark);if(S.u.u_gier)G.hp=Math.min(G.maxhp,G.hp+.5*e.mark);ring(e.x,e.y,4,20+e.mark*6,.2,'#bfe9ff',3);e.mark=0}
+    G.reishi=Math.min(S.rmax,G.reishi+(a.full?3:1)+(mask?2:0));if(S.frost&&a.full)e.slowT=2+S.frost*.6;
+    if(mask&&a.full&&S.u.u_jager&&!a.split){a.split=1;const c=Math.atan2(a.vy,a.vx),s=Math.hypot(a.vx,a.vy);for(const o of[-.4,.4])G.arrows.push({x:e.x,y:e.y,vx:Math.cos(c+o)*s,vy:Math.sin(c+o)*s,dmg:a.dmg*.5,pierce:2,r:6,len:30,life:.6,hit:[e.id],full:true,perfect:false,rico:0,kills:0,kind:3,split:1})}}
+  if(S.shock&&a.kind!==1&&++G.shockN>=7-S.shock){G.shockN=0;chain(e,(18+10*S.shock)*S.dmg)}
+  if(S.burn&&crit){e.burnT=3;e.burnD=Math.max(e.burnD||0,(6+4*S.burn)*S.dmg)}
+  hitEnemy(e,d,a,crit);const dead=e.hp<=0;
+  if(bow&&mask){const mx=e.x+Math.cos(e.ang)*e.r*.42,my=e.y+Math.sin(e.ang)*e.r*.42;burst(mx,my,7,340,.5,Math.max(3,e.r*.28),'#ffffff',1);ring(mx,my,3,e.r*1.6,.18,'#ffffff',3);
+    if(A.ctx){const t=A.now();A.noise(t,.06,.22,{type:'highpass',f:5500});A.tone('triangle',1400,t,.09,.08,{f2:500,rev:.4})}
+    pride(dead?6:2);qEvent('perf');if(dead&&S.u.u_schatten)G.dashes=Math.min(S.dashMax,G.dashes+1);if(dead&&!COMMON[e.type])text(e.x,e.y-e.r-26,'MASKENBRUCH','#ffffff',18,.9)}
+  if(bow&&dead){if(far>.5){pride(3);text(e.x,e.y-e.r-40,'WEITSCHUSS','#bfe9ff',15,.8)}if(a.kills>=2)pride(2)}};
+const _ok5=onKill;onKill=function(e,src){_ok5(e,src);G.killT=G.t;pride(1)};
+const _oh5=onHurt;onHurt=function(){_oh5();pride(-35)};
+const _cast5=cast;cast=function(i){const id=meta.skills[i],c=COSTS[id]||0;if(G.state!=='play'||G.cd[i]>0||!SKILLS[id])return;if(G.reishi<c){text(G.px,G.py-44,'NOT ENOUGH REISHI','#9aa3bd',14,.6);return}G.reishi-=c;_cast5(i);if(S.u.u_sturmr)G.instant=1};
+
+/* ---------- the world is the quiver ---------- */
+function treeNear(){const C=240,ZN=G.zone%3,th=ZN===1?.42:ZN===2?.04:.13,cx0=Math.floor(G.px/C),cy0=Math.floor(G.py/C);let b=null,bd=280*280;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const cx=cx0+dx,cy=cy0+dy;if(hash2(cx,cy)>=th)continue;const k=cx+','+cy,st=G.drained.get(k);if(st!==undefined&&st<=0)continue;
+    const x=cx*C+hash2(cx+91,cy)*C,y=cy*C+hash2(cx,cy+57)*C,d=(x-G.px)**2+(y-G.py)**2;if(d<bd){bd=d;b={x,y,k,st:st===undefined?40:st}}}return b}
+function drawTreeS(x,y,cx,cy){const st=G.drained&&G.drained.get(cx+','+cy);if(st!==undefined&&st<=0){ctx.fillStyle='rgba(222,226,238,.3)';ctx.beginPath();ctx.ellipse(x,y,20,14,0,0,TAU);ctx.fill();return}
+  ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(x,y,4,x,y,70);g.addColorStop(0,'rgba(90,170,255,.16)');g.addColorStop(1,'rgba(90,170,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,70,0,TAU);ctx.fill();ctx.globalCompositeOperation='source-over';
+  if(st!==undefined)ctx.globalAlpha=.3+.7*st/40;drawTree(x,y,cx,cy);ctx.globalAlpha=1}
+const _su5=sysUpdate;sysUpdate=function(dt){_su5(dt);if(G.state!=='play')return;const ult=G.ultT>0;
+  if(G.boss)G.bossT+=dt;if(G.storm>0)G.reishi=Math.min(S.rmax,G.reishi+6*dt);
+  if(G.t-G.killT>5&&G.stolz>0)pride(-.8*dt);
+  // overdraw: a full bow keeps drinking
+  if(mouse.l&&G.charge>=1&&!ult){if(G.over<2&&G.reishi>0){const o0=G.over|0;G.over=Math.min(2,G.over+dt/.55);G.reishi=Math.max(0,G.reishi-12*dt);if((G.over|0)>o0){A.chime();ring(G.px,G.py,90,20,.2,'#ffffff',3);G.shake=Math.max(G.shake,4)}
+      if(Math.random()<.7){const a=rand(TAU),d=rand(60,130);part(G.px+Math.cos(a)*d,G.py+Math.sin(a)*d,-Math.cos(a)*d*3,-Math.sin(a)*d*3,.3,rand(2,4),'#dff3ff')}}}else if(!mouse.l)G.over=0;
+  // a step into a shot
+  if(G.stepT>0){G.stepT-=dt;if(mouse.l&&G.charge>0&&G.charge<.6){G.charge=.6;G.stepT=0}}
+  if(G.instant&&mouse.l&&G.charge>0&&G.charge<1){G.charge=.999;G.instant=0}
+  // drawing the bow near a quartz tree drinks it
+  if(mouse.l&&!ult&&G.reishi<S.rmax&&G.over===0){const tr=treeNear();if(tr){const amt=Math.min(tr.st,18*dt);G.drained.set(tr.k,tr.st-amt);G.reishi=Math.min(S.rmax,G.reishi+amt*S.rgain);
+      if(Math.random()<.8){const a=rand(TAU),d=rand(10,60),sx=tr.x+Math.cos(a)*d,sy=tr.y+Math.sin(a)*d;part(sx,sy,(G.px-sx)*2.4,(G.py-sy)*2.4,.42,rand(2,4),'#bfe9ff')}
+      if(tr.st-amt<=0){burst(tr.x,tr.y,26,260,.8,6,'#eef1f8',1);burst(tr.x,tr.y,14,200,.5,4,'#8fd8ff');ring(tr.x,tr.y,10,90,.3,'#dff3ff',3);if(A.ctx)A.kill(false,0)}}}};
+const _fx5=sysDrawFx;sysDrawFx=function(){_fx5();if(G.state!=='play')return;
+  if(G.over>0){const k=G.over/2;ctx.strokeStyle=`rgba(255,255,255,${.25+.5*k})`;ctx.lineWidth=2+k*3;ctx.beginPath();ctx.arc(G.px,G.py,34+k*22+Math.sin(G.t*30)*1.5,0,TAU);ctx.stroke()}
+  const t=tierS();if(t>=2){ctx.strokeStyle=`rgba(255,243,168,${.12*t})`;ctx.lineWidth=1.5;for(let i=0;i<t;i++){const a=G.t*(.6+i*.2)+i*1.7;ctx.beginPath();ctx.arc(G.px,G.py,26+i*5,a,a+2.2);ctx.stroke()}}};
+const _sh5=sysHUD;sysHUD=function(u,pad,f){_sh5(u,pad,f);const t=tierS();
+  ctx.textAlign='right';ctx.fillStyle=t?'#fff3a8':'#c9cedd';ctx.font=f(12,700);ctx.fillText('STOLZ'+(t?' '+ROMAN[t-1]+' · +'+10*t+'% damage':''),W-pad,pad+140*u);bar(W-pad-130*u,pad+146*u,130*u,6*u,G.stolz/100,'#fff3a8');
+  const bw=Math.min(300*u,W*.42),atk=mouse.l||mouse.r;ctx.fillStyle=atk?'#ff8296':'#8fd8ff';ctx.font=f(11,700);ctx.fillText(atk?'BLUT ARTERIE':'BLUT VENE · −40% harm',pad+bw,H-pad-69*u);
+  if(G.lull&&!G.boss){ctx.textAlign='center';ctx.fillStyle='rgba(201,206,221,.6)';ctx.font=f(13);ctx.fillText('· the desert holds its breath ·',W/2,pad+22*u)}
+  if(G.over>0&&G.state==='play'){ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.lineWidth=3;for(let i=0;i<2;i++){const k=clamp(G.over-i,0,1);if(k>0){ctx.beginPath();ctx.arc(mouse.x,mouse.y,23+i*7,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}}ctx.globalCompositeOperation='source-over'}};
 newGame();showBest();requestAnimationFrame(frame);
 </script>

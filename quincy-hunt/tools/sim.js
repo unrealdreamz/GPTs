@@ -1,5 +1,4 @@
-// Balance simulator: a kiting bot plays full hunts at max speed and prints loop metrics.
-// Usage: node sim.js [runs] [maxSeconds] [skill 0..1]   (needs playwright)
+// Headless loop simulator: a kiting bot plays N runs at max speed and reports loop metrics.
 const {chromium}=require('playwright');
 const RUNS=+process.argv[2]||4,MAXT=+process.argv[3]||600,SKILL=+process.argv[4]||0.6;
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1400,height:800}});
