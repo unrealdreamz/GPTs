@@ -8,7 +8,7 @@ const out=await p.evaluate(async({RUNS,MAXT,SKILL})=>{
  const res=[];
  for(let run=0;run<RUNS;run++){
   try{localStorage.clear()}catch(e){}
-  meta.base={};meta.tree={};meta.eq={};meta.bag=[];meta.skills=['heizen','wolke','gritz'];meta.stufe=1;
+  meta.seenIntro=1;meta.base={};meta.tree={};meta.eq={};meta.bag=[];meta.skills=['heizen','wolke','gritz'];meta.stufe=1;
   startGame();const M={lv:[],hits:0,dmgBy:{},volT:0,chgT:0,starve:0,perf:0,full:0,lull:0,kAt:[]};
   let hold=0,rel=0,volley=0,lastHp=G.hp,nextMin=60,strafe=1,st=0;
   const _hurt=hurt;
@@ -19,7 +19,7 @@ const out=await p.evaluate(async({RUNS,MAXT,SKILL})=>{
    // threat field
    let fx=0,fy=0,near=null,nd=1e9,cnt=0;
    for(const e of G.enemies){if(e.hidden&&e.type!=='worm')continue;const dx=G.px-e.x,dy=G.py-e.y,d=Math.hypot(dx,dy)||1;if(d<420){const w=(e.r+60)/(d*d)*(e.type==='rift'?0:1);fx+=dx/d*w*400;fy+=dy/d*w*400;cnt++}
-     if(!e.hidden&&(e.boss?d*.5:d)<nd&&e.type!=='rift'){nd=e.boss?d*.5:d;near=e}
+     if(!e.hidden&&(e.boss?d*.2:d)<nd&&e.type!=='rift'){nd=e.boss?d*.2:d;near=e}
      if((e.type==='gil'||e.boss)&&(e.state===1||e.state===2||e.state===3)){const ca=e.ca,px=G.px-e.x,py=G.py-e.y,perp=-Math.sin(ca)*px+Math.cos(ca)*py,al=Math.cos(ca)*px+Math.sin(ca)*py;if(al>0&&Math.abs(perp)<110){const s=perp>=0?1:-1;fx+=-Math.sin(ca)*s*3;fy+=Math.cos(ca)*s*3}}
      if(e.type==='brute'&&e.state>=1){const ca=e.ca,px=G.px-e.x,py=G.py-e.y,perp=-Math.sin(ca)*px+Math.cos(ca)*py;if(Math.abs(perp)<70){const s=perp>=0?1:-1;fx+=-Math.sin(ca)*s*2;fy+=Math.cos(ca)*s*2}}}
    for(const e of G.enemies){if((e.type==='arr'&&e.state===5)||(e.type==='vasto'&&e.state===4)){const dx=G.px-e.tx,dy=G.py-e.ty,d=Math.hypot(dx,dy)||1;if(d<150){fx+=dx/d*4*SKILL;fy+=dy/d*4*SKILL}}
