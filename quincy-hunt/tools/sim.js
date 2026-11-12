@@ -15,6 +15,7 @@ const out=await p.evaluate(async({RUNS,MAXT,SKILL})=>{
   for(let step=0;step<MAXT*60;step++){
    if(G.state==='levelup'){const c=document.querySelectorAll('#cards button');c[Math.random()*c.length|0].click();M.lv.push(G.t|0);continue}
    if(G.state==='win'){document.getElementById('winGo').click();M.win=G.t|0;continue}
+   if(G.state==='doors'){document.getElementById('door'+(Math.random()*2|0)).click();continue}
    if(G.state!=='play')break;
    // threat field
    let fx=0,fy=0,near=null,nd=1e9,cnt=0;

@@ -123,6 +123,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
     </div>
     <div class="eyebrow">Your inheritance</div>
     <div class="schrift" id="schrift"></div>
+    <div class="best" id="trialLine" style="color:var(--gold);opacity:1"></div>
     <div class="row" id="stufeRow"></div>
     <div class="row"><button id="start">Begin the hunt</button><button class="ghost" id="outpost">The Outpost</button><button class="ghost" id="replayIntro">The first night</button></div>
     <div class="best" id="best"></div>
@@ -147,6 +148,11 @@ button:disabled{opacity:.4;cursor:not-allowed}
   </div>
   <div class="ov" id="intro" hidden style="justify-content:flex-end">
     <div class="say"><div class="eyebrow" id="introWho">Vater</div><p class="lede" id="introLine"></p><div class="best">Click or Space to go on · Esc to skip</div></div>
+  </div>
+  <div class="ov veil" id="doors" hidden>
+    <div class="eyebrow">The Garganta splits</div>
+    <h2>Choose your hunting ground</h2>
+    <div class="cards" id="doorCards"></div>
   </div>
   <div class="ov veil" id="win" hidden>
     <div class="eyebrow">The apex is ash</div>
@@ -402,7 +408,7 @@ function newGame0(){Object.assign(G,{t:0,px:0,py:0,hp:100,maxhp:100,reishi:50,ul
   shake:0,freeze:0,slow:0,spawnAcc:0,nextGil:115,gilN:1,nextBoss:210,nextRift:40,nextWell:65,nextElite:70,wells:[],stuck:[],prints:[],stains:[],lances:[],blasts:[],kickX:0,kickY:0,vx:0,vy:0,rerolls:2,stepAcc:0,foot:1,chan:false,relic:false,seen:{},sch:meta.sel,bossN:0,boss:null,tier:0,eid:1,rainAcc:0,seekT:0,hurtFlash:0,ultFire:0,banner:null,camX:0,camY:0,flash:0});
   if(G.sch==='~')G.hp=G.maxhp=140;if(G.sch==='~')G.hp=G.maxhp=70;calcStats()}
 newGame0();
-function setState(s){G.state=s;$('title').hidden=s!=='title';$('lvl').hidden=s!=='levelup';$('pause').hidden=s!=='pause';$('dead').hidden=s!=='dead';$('hub').hidden=s!=='hub';$('win').hidden=s!=='win';$('intro').hidden=s!=='intro';
+function setState(s){G.state=s;$('title').hidden=s!=='title';$('lvl').hidden=s!=='levelup';$('pause').hidden=s!=='pause';$('dead').hidden=s!=='dead';$('hub').hidden=s!=='hub';$('win').hidden=s!=='win';$('intro').hidden=s!=='intro';$('doors').hidden=s!=='doors';
   app.classList.toggle('playing',s==='play');A.duck(s==='pause'||s==='levelup');if(s==='pause')$('build').innerHTML=buildHTML();if(s!=='play'){mouse.l=mouse.r=false;A.drawTone(0,false)}
   if(s==='play'){G.wasL=false;G.charge=0}}
 function startGame(){A.init();newGame();setState('play');banner('THE HUNT BEGINS','Stray hollows are drawn to your reiatsu');
@@ -583,7 +589,7 @@ function spawner(dt){const t=G.t,cap=Math.min(40+t/3,240);G.spawnAcc+=dt*(1.2+t/
       if(!G.seen.rift){G.seen.rift=1;banner('GARGANTA','A rift is bleeding hollows. Follow the marker and seal it with arrows.')}else text(G.px,G.py-60,'A GARGANTA OPENS','#c77dff',20,1.6)}}
   if(t>=G.nextWell){G.nextWell=t+85;if(!G.wells.length){const a=rand(TAU),R=rand(700,900);G.wells.push({x:G.px+Math.cos(a)*R,y:G.py+Math.sin(a)*R,p:0,life:80});
       if(!G.seen.well){G.seen.well=1;banner('REISHI WELLSPRING','Stand in the sigil to claim it. The hollows will come.')}else text(G.px,G.py-60,'A WELLSPRING STIRS','#5fc8ff',20,1.6)}}
-  if(t>=G.nextElite){G.nextElite=t+48;spawn(pick(t>130?['brute','armor','spitter','grunt']:['grunt','spitter']),undefined,undefined,true);text(G.px,G.py-60,'AN ELITE HUNTS YOU','#ffd27a',20,1.6)}
+  if(t>=G.nextElite){G.nextElite=t+48/zmod('elite');spawn(pick(t>130?['brute','armor','spitter','grunt']:['grunt','spitter']),undefined,undefined,true);text(G.px,G.py-60,'AN ELITE HUNTS YOU','#ffd27a',20,1.6)}
   const ti=tierOf(t);if(ti!==G.tier){G.tier=ti;}}
 
 /* ---------- level up ---------- */
@@ -695,7 +701,7 @@ const duneTile=(()=>{const c=document.createElement('canvas');c.width=c.height=2
     if(s<0){d[k]=6;d[k+1]=8;d[k+2]=24;d[k+3]=Math.min(150,-s*62)}else{d[k]=225;d[k+1]=232;d[k+2]=255;d[k+3]=Math.min(70,s*26)}}
   x.putImageData(im,0,0);return c})();
 let dunePat=null;
-function drawGround(){const x0=G.camX-VW/2,y0=G.camY-VH/2,ZN=(G.zone||0)%3;
+function drawGround(){const x0=G.camX-VW/2,y0=G.camY-VH/2,ZN=(G.zv||0);
   for(let ty=Math.floor(y0/512);ty*512<y0+VH;ty++)for(let tx=Math.floor(x0/512);tx*512<x0+VW;tx++)ctx.drawImage(sandTile,2,2,512,512,tx*512,ty*512,512.6,512.6);
   ctx.imageSmoothingEnabled=true;if(!dunePat){dunePat=ctx.createPattern(duneTile,'repeat');dunePat.setTransform(new DOMMatrix().scaleSelf(9,9))}ctx.fillStyle=dunePat;ctx.fillRect(x0-2,y0-2,VW+4,VH+4);
   // decor
@@ -1168,7 +1174,7 @@ function spawner(dt){if(G.duel)return;const t=G.t,cap=Math.min(26+t/9,80);G.spaw
   if(t>=G.nextBoss&&!G.boss){G.nextBoss=1e9;const ty=bossPick();G.boss=spawn(ty);G.boss.name=BOSSN[ty][0];bossIntro(G.boss);
     banner('',ty==='arr'?'A blade in the dark. Leave the circles before they close.':ty==='esp'?'It carries a number. It has never needed to release its sword.':'The apex of the hollow world has found you');A.roar();G.shake=18;G.flash=.3}
   if(t>=G.nextEvent){G.nextEvent=t+36;worldEvent()}
-  if(t>=G.nextElite){G.nextElite=t+48;spawn(pick(t>130?['brute','armor','spitter','grunt','splitter']:['grunt','spitter']),undefined,undefined,true);text(G.px,G.py-60,'AN ELITE HUNTS YOU','#ffd27a',20,1.6)}
+  if(t>=G.nextElite){G.nextElite=t+48/zmod('elite');spawn(pick(t>130?['brute','armor','spitter','grunt','splitter']:['grunt','spitter']),undefined,undefined,true);text(G.px,G.py-60,'AN ELITE HUNTS YOU','#ffd27a',20,1.6)}
   const ti=tierOf(t);if(ti!==G.tier){G.tier=ti;}}
 
 function sysUpdate(dt){
@@ -1190,7 +1196,7 @@ function sysUpdate(dt){
       for(const e of G.enemies.slice())if(!e.hidden&&!(e.orbCd>0)&&Math.hypot(e.x-x,e.y-y)<e.r+16){e.orbCd=.35;hitEnemy(e,(16+6*S.orbit)*S.dmg*jbonus(e),{vx:e.x-G.px,vy:e.y-G.py,kills:0,kind:4},false)}}}
   for(let i=G.bolts.length-1;i>=0;i--)if((G.bolts[i].life-=dt)<=0)G.bolts.splice(i,1);
   if(G.bounty){if(!G.enemies.includes(G.bounty))G.bounty=null;else if((G.bountyT-=dt)<=0){G.enemies.splice(G.enemies.indexOf(G.bounty),1);burst(G.bounty.x,G.bounty.y,20,200,.6,10,'#0a0a10',2);text(G.px,G.py-60,'THE BOUNTY SLIPS AWAY','#9aa3bd',20,1.6);G.bounty=null}}
-  for(let i=G.caches.length-1;i>=0;i--){const c=G.caches[i];c.life-=dt;if(Math.hypot(G.px-c.x,G.py-c.y)<46){G.caches.splice(i,1);dropItem(c.x,c.y,1);if(Math.random()<.4)dropItem(c.x,c.y,0);G.silver+=40;ring(c.x,c.y,10,200,.4,'#ffd27a',6);
+  for(let i=G.caches.length-1;i>=0;i--){const c=G.caches[i];c.life-=dt;if(Math.hypot(G.px-c.x,G.py-c.y)<46){G.caches.splice(i,1);foundCache();dropItem(c.x,c.y,1);if(Math.random()<.4)dropItem(c.x,c.y,0);G.silver+=40;ring(c.x,c.y,10,200,.4,'#ffd27a',6);
       banner('AMBUSH','They were waiting on the body');const R=420;for(let k=0;k<8+Math.min(10,G.t/40|0);k++)spawn(G.t>120&&k%4===0?'brute':k%3?'grunt':'crawler',c.x+Math.cos(k)*R,c.y+Math.sin(k)*R)}else if(c.life<=0)G.caches.splice(i,1)}}
 
 /* ---------- drawing ---------- */
@@ -1247,7 +1253,7 @@ function renderHub(){const run=hubFrom==='play';if(run&&hubTab==='base')hubTab='
   for(const b of $('tabs').children)b.onclick=()=>{hubTab=b.dataset.t;renderHub()};
   const pts=treePts(),rk=rankOf();$('hubInfo').textContent=`${rankTitle(rk[0])} · rank ${rk[0]} (${rk[1]}/${rk[2]}) · ${meta.silver} Silber · ${pts} tree point${pts===1?'':'s'} free`;
   $('hubClose').textContent=run?'Back to the hunt':'Close';
-  ({base:hubBase,load:hubLoad,tree:hubTree,inv:hubInv,char:hubChar,journal:hubJournal,letters:hubLetters})[hubTab]($('hubBody'))}
+  ({base:hubBase,load:hubLoad,tree:hubTree,inv:hubInv,char:hubChar,journal:hubJournal,letters:hubLetters,trials:hubTrials})[hubTab]($('hubBody'))}
 function hubBase(el){el.innerHTML=`<p class="lede">Der Vorposten: a buried Quincy outpost under the dunes. What you carry back in Silber rebuilds it, and it sends you out stronger.</p><div class="grid3">`+
   BASE.map(b=>{const l=meta.base[b.id]||0,c=COST[l];return`<div class="pan"><i>${'◆'.repeat(l)}${'◇'.repeat(5-l)} · level ${l}</i><b>${b.name}</b><span>${b.desc}</span><button class="ghost buy" data-b="${b.id}" ${l>=5||meta.silver<c?'disabled':''}>${l>=5?'Complete':'Build · '+c+' Silber'}</button></div>`}).join('')+`</div>`;
   el.querySelectorAll('.buy').forEach(b=>b.onclick=()=>{const id=b.dataset.b,l=meta.base[id]||0;if(l<5&&meta.silver>=COST[l]){meta.silver-=COST[l];meta.base[id]=l+1;saveMeta();A.init();A.levelup();renderHub()}})}
@@ -1346,9 +1352,9 @@ DRAW.esp=(e,r,wob)=>{const p2=e.p2;ctx.globalCompositeOperation='lighter';const 
   ctx.strokeStyle=p2?'#3df0c0':'#e8fffa';ctx.lineWidth=p2?5:3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(r*.5,r*.95);ctx.lineTo(r*3.3,r*.4);ctx.stroke()};
 
 /* ---------- zones ---------- */
-function zoneW(w){const z=G.zone%3,add=(t,m,base)=>{const x=w.find(a=>a[0]===t);if(x)x[1]*=m;else w.push([t,base])};
+function zoneW(w){const z=(G.zv||0),add=(t,m,base)=>{const x=w.find(a=>a[0]===t);if(x)x[1]*=m;else w.push([t,base])};
   if(z===1){add('adj',2.5,1.2);add('wraith',2.5,2);add('worm',2,1.2);add('crawler',1.6,5)}else if(z===2){add('armor',2.5,2);add('sniper',2.5,1.6);add('howler',2,1);add('brute',1.5,2)}}
-function zoneTint(){const z=G.zone%3;if(!z)return;ctx.fillStyle=z===1?'rgba(30,8,62,.36)':'rgba(120,34,24,.2)';ctx.fillRect(G.camX-VW/2-60,G.camY-VH/2-60,VW+120,VH+120)}
+function zoneTint(){const z=(G.zv||0);if(!z)return;ctx.fillStyle=z===1?'rgba(30,8,62,.36)':'rgba(120,34,24,.2)';ctx.fillRect(G.camX-VW/2-60,G.camY-VH/2-60,VW+120,VH+120)}
 
 /* ---------- wrap the earlier layer ---------- */
 const _cs=calcStats;calcStats=function(){const hp0=G.hp,m0=G.maxhp;_cs();const k=(G.stufe||1)-1;S.xpM*=1+.2*k;S.silverM*=1+.25*k;S.luck+=.15*k;
@@ -1375,8 +1381,8 @@ const _su=sysUpdate;sysUpdate=function(dt){_su(dt);
     if(G.pendWin){G.pendWin=0;G.won=1;G.silver+=300*G.stufe;meta.st.wins++;const up=meta.maxStufe<10&&G.stufe>=meta.maxStufe;if(up)meta.maxStufe++;saveMeta();
       $('winStats').innerHTML=[[Math.round(G.score).toLocaleString(),'Score'],[fmtT(G.t),'Time'],[G.kills,'Purified'],['+'+300*G.stufe,'Silber bonus']].map(a=>`<div><b>${a[0]}</b><span>${a[1]}</span></div>`).join('');
       $('winLine').textContent=`Jagdstufe ${ROMAN[G.stufe-1]} cleared`+(up?` · Jagdstufe ${ROMAN[meta.maxStufe-1]} is now open`:'');G.zone++;setState('win');return}
-    G.zone++;const z=ZONES[G.zone%3];banner(z[0].toUpperCase(),z[1])}};
-const _sh=sysHUD;sysHUD=function(u,pad,f){_sh(u,pad,f);ctx.textAlign='left';ctx.fillStyle='#c9cedd';ctx.font=f(13,700);ctx.fillText(ZONES[G.zone%3][0].toUpperCase()+'  ·  STUFE '+ROMAN[G.stufe-1],pad,pad+110*u);
+    G.zone++;openDoors()}};
+const _sh=sysHUD;sysHUD=function(u,pad,f){_sh(u,pad,f);ctx.textAlign='left';ctx.fillStyle='#c9cedd';ctx.font=f(13,700);ctx.fillText(zoneDef()[0].toUpperCase()+'  ·  STUFE '+ROMAN[G.stufe-1],pad,pad+110*u);
   ctx.font=f(12);meta.quests.forEach((q,i)=>{ctx.fillStyle=q.done?'#ffd27a':'rgba(201,206,221,.75)';ctx.fillText((q.done?'✓ ':'· ')+q.txt+'  '+Math.min(q.p,q.n)+'/'+q.n,pad,pad+(130+i*16)*u)})};
 const _ds=drawStatus;drawStatus=function(e){if(e.type==='esp'){
     if(e.state===10){ctx.fillStyle='#020206';ctx.beginPath();ctx.arc(e.x,e.y,34+Math.sin(G.t*30)*3,0,TAU);ctx.fill();ctx.strokeStyle='#3df0c0';ctx.lineWidth=4;ctx.beginPath();ctx.arc(e.x,e.y,44+(1.6-e.st)*60,0,TAU);ctx.stroke();return}
@@ -1390,7 +1396,7 @@ const _hc=hubChar;hubChar=function(el){_hc(el);const s=meta.st,d=document.create
 function drawStufe(){const s=meta.stufe=clamp(meta.stufe,1,meta.maxStufe),k=s-1;$('stufeRow').innerHTML=`<button class="ghost" id="stDn" ${s<=1?'disabled':''}>−</button><span class="best" style="opacity:1">Jagdstufe ${ROMAN[k]}`+(k?` · hollows +${40*k}% spirit, +${20*k}% harm · rewards +${25*k}%`:meta.maxStufe>1?' · the hunt as you first knew it':' · fell the Vasto Lorde to open the next')+`</span><button class="ghost" id="stUp" ${s>=meta.maxStufe?'disabled':''}>+</button>`;
   $('stDn').onclick=()=>{meta.stufe--;saveMeta();drawStufe()};$('stUp').onclick=()=>{meta.stufe++;saveMeta();drawStufe()}}
 drawStufe();const _dsc=drawSchrift;drawSchrift=function(){_dsc();drawStufe()};
-$('winGo').onclick=()=>{setState('play');const z=ZONES[G.zone%3];banner('THE ENDLESS NIGHT',z[0]+'. Nothing ends out here.')};
+$('winGo').onclick=()=>{setState('play');const z=zoneDef();banner('THE ENDLESS NIGHT',z[0]+'. Nothing ends out here.')};
 $('winHome').onclick=()=>{setState('play');G.hp=0;die();$('deadTitle').textContent='Hunt complete'};
 $('glow').checked=meta.glow!==false;$('glow').onchange=e=>{meta.glow=e.target.checked;saveMeta()};
 const bc=document.createElement('canvas'),bx=bc.getContext('2d'),bc2=document.createElement('canvas'),bx2=bc2.getContext('2d');
@@ -1454,9 +1460,9 @@ const _oh5=onHurt;onHurt=function(){_oh5();pride(-35)};
 const _cast5=cast;cast=function(i){const id=meta.skills[i],c=COSTS[id]||0;if(G.state!=='play'||G.cd[i]>0||!SKILLS[id])return;if(G.reishi<c){text(G.px,G.py-44,'NOT ENOUGH REISHI','#9aa3bd',14,.6);return}G.reishi-=c;_cast5(i);if(S.u.u_sturmr)G.instant=1};
 
 /* ---------- the world is the quiver ---------- */
-function treeNear(){const C=240,ZN=G.zone%3,th=ZN===1?.42:ZN===2?.04:.13,cx0=Math.floor(G.px/C),cy0=Math.floor(G.py/C);let b=null,bd=280*280;
+function treeNear(){const C=240,ZN=(G.zv||0),th=ZN===1?.42:ZN===2?.04:.13,cx0=Math.floor(G.px/C),cy0=Math.floor(G.py/C);let b=null,bd=280*280;
   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const cx=cx0+dx,cy=cy0+dy;if(hash2(cx,cy)>=th)continue;const k=cx+','+cy,st=G.drained.get(k);if(st!==undefined&&st<=0)continue;
-    const x=cx*C+hash2(cx+91,cy)*C,y=cy*C+hash2(cx,cy+57)*C,d=(x-G.px)**2+(y-G.py)**2;if(d<bd){bd=d;b={x,y,k,st:st===undefined?40:st}}}return b}
+    const x=cx*C+hash2(cx+91,cy)*C,y=cy*C+hash2(cx,cy+57)*C,d=(x-G.px)**2+(y-G.py)**2;if(d<bd){bd=d;b={x,y,k,st:st===undefined?40*zmod('tree'):st}}}return b}
 function drawTreeS(x,y,cx,cy){const st=G.drained&&G.drained.get(cx+','+cy);if(st!==undefined&&st<=0){ctx.fillStyle='rgba(222,226,238,.3)';ctx.beginPath();ctx.ellipse(x,y,20,14,0,0,TAU);ctx.fill();return}
   ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(x,y,4,x,y,70);g.addColorStop(0,'rgba(90,170,255,.16)');g.addColorStop(1,'rgba(90,170,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,70,0,TAU);ctx.fill();ctx.globalCompositeOperation='source-over';
   if(st!==undefined)ctx.globalAlpha=.3+.7*st/40;drawTree(x,y,cx,cy);ctx.globalAlpha=1}
@@ -1472,7 +1478,7 @@ const _su5=sysUpdate;sysUpdate=function(dt){_su5(dt);if(G.state!=='play')return;
   // drawing the bow near a quartz tree drinks it
   if(mouse.l&&!ult&&G.reishi<S.rmax&&G.over===0){const tr=treeNear();if(tr){const amt=Math.min(tr.st,18*dt);G.drained.set(tr.k,tr.st-amt);G.reishi=Math.min(S.rmax,G.reishi+amt*S.rgain);
       if(Math.random()<.8){const a=rand(TAU),d=rand(10,60),sx=tr.x+Math.cos(a)*d,sy=tr.y+Math.sin(a)*d;part(sx,sy,(G.px-sx)*2.4,(G.py-sy)*2.4,.42,rand(2,4),'#bfe9ff')}
-      if(tr.st-amt<=0){burst(tr.x,tr.y,26,260,.8,6,'#eef1f8',1);burst(tr.x,tr.y,14,200,.5,4,'#8fd8ff');ring(tr.x,tr.y,10,90,.3,'#dff3ff',3);if(A.ctx)A.kill(false,0)}}}};
+      if(tr.st-amt<=0){G.treesN++;burst(tr.x,tr.y,26,260,.8,6,'#eef1f8',1);burst(tr.x,tr.y,14,200,.5,4,'#8fd8ff');ring(tr.x,tr.y,10,90,.3,'#dff3ff',3);if(A.ctx)A.kill(false,0)}}}};
 const _fx5=sysDrawFx;sysDrawFx=function(){_fx5();if(G.state!=='play')return;
   if(G.over>0){const k=G.over/2;ctx.strokeStyle=`rgba(255,255,255,${.25+.5*k})`;ctx.lineWidth=2+k*3;ctx.beginPath();ctx.arc(G.px,G.py,34+k*22+Math.sin(G.t*30)*1.5,0,TAU);ctx.stroke()}
   const t=tierS();if(t>=2){ctx.strokeStyle=`rgba(255,243,168,${.12*t})`;ctx.lineWidth=1.5;for(let i=0;i<t;i++){const a=G.t*(.6+i*.2)+i*1.7;ctx.beginPath();ctx.arc(G.px,G.py,26+i*5,a,a+2.2);ctx.stroke()}}};
@@ -1681,7 +1687,7 @@ function recall(k,s){if(G.memSeen[k]||(meta.mem[k]||0)>=3||G.memo)return;G.memSe
 const jTotal=()=>{let n=0;for(const k in JRN)n+=jtier(k);return n};
 const LETTERS=[
  [()=>meta.st.hunts>=1,'After the first night','You came back. I had made arrangements for the other outcome. Cancel nothing. You go again tomorrow.'],
- [()=>meta.st.bosses>=1,'On the Koloss','A great hollow is dead, I am told. It was large. That is all it was. Do not mistake size for difficulty a second time.'],
+ [()=>meta.st.bosses>=1,'On the first great hollow','A great hollow is dead, I am told. It was large. That is all it was. Do not mistake size for difficulty a second time.'],
  [()=>meta.st.hunts>=5,'Five nights','Your draw is still slow, and you still look at your feet when you step. The desert does not care where your feet are. Neither should you.'],
  [()=>meta.st.wins>=1,'On the Vasto Lorde','I will say this once: that was not nothing. Now put on the Sanrei glove. Jagdstufe II. Finish that hunt and I will come and see for myself.'],
  [()=>jTotal()>=20,'Your Jagdbuch','The Jagdbuch is thorough. Your handwriting is not. Your grandfather kept his in ink and never crossed out a line.'],
@@ -1742,5 +1748,116 @@ const _ds9=drawStatus;drawStatus=function(e){if(e.type==='vater'){
 const _sh9=sysHUD;sysHUD=function(u,pad,f){_sh9(u,pad,f);
   if(G.boss){const w=Math.min(560*u,W-pad*2)*.5,x=(W-w)/2,y=pad+34*u,st=G.boss.stag>0;bar(x,y,w,4*u,st?G.boss.stag/3.5:(G.boss.mb||0)/100,st?'#fff3a8':'#ffffff','rgba(6,8,20,.6)');ctx.textAlign='center';ctx.font=f(10,700);ctx.fillStyle=st?'#fff3a8':'rgba(244,246,251,.7)';ctx.fillText(st?'BROKEN · strike now':G.boss.type==='vater'?'GUARD':'MASK',W/2,y+15*u)}
   if(G.memo){ctx.globalAlpha=clamp(Math.min(G.memo.t,5.5-G.memo.t)*1.4,0,1);ctx.textAlign='center';ctx.font=`italic 500 ${Math.round(19*u)}px Cinzel,serif`;ctx.fillStyle='#dfe9ff';ctx.fillText(G.memo.s,W/2,H*.64);ctx.font=f(11,700);ctx.fillStyle='#5fc8ff';ctx.fillText('· VATER, REMEMBERED ·',W/2,H*.64+20*u);ctx.globalAlpha=1}};
-newGame();showBest();requestAnimationFrame(frame);
+</script>
+<script>
+'use strict';
+/* ================= SAGA LAYER: routes through the desert, trials, the people of the outpost, grandfather's pages ================= */
+meta=Object.assign({tr:{},bonusPts:0,npc:{},npcAt:{},pages:0},meta);
+/* ---------- hunting grounds ---------- */
+const ZDEF=[
+ {n:'Die Weiße Wüste',s:'White sand to every horizon',zv:0,tint:null,m:{},d:''},
+ {n:'Der Menoswald',s:'Beneath the desert, where the Gillians root',zv:1,tint:'rgba(30,8,62,.36)',m:{},d:'Quartz everywhere to drink. Adjuchas, Irrlichter and worms.'},
+ {n:'Las Noches',s:'The ruins of a throne',zv:2,tint:'rgba(120,34,24,.2)',m:{silver:1.6},d:'Almost no trees. Schildmasken and Späher. +60% Silber.'},
+ {n:'Der Quarzhain',s:'A grove that hums',zv:1,tint:'rgba(20,60,110,.3)',m:{tree:2,hp:1.2},d:'Trees hold twice the reishi. Hollows have 20% more spirit.'},
+ {n:'Das Knochenfeld',s:'Where the great ones came to die',zv:0,tint:'rgba(60,80,40,.24)',m:{elite:2,luck:.3},d:'Elites hunt twice as often. Better equipment.'},
+ {n:'Die Sturmebene',s:'The wind never stops here',zv:0,tint:'rgba(120,125,140,.25)',m:{storm:1},d:'A Sandsturm that never ends: faster hollows, +50% experience.'}];
+const zoneDef=()=>{const z=ZDEF[G.zk||0];return[z.n,z.s]},zmod=k=>ZDEF[G.zk||0].m[k]||(k==='luck'||k==='storm'?0:1);
+zoneTint=function(){const t=ZDEF[G.zk||0].tint;if(!t)return;ctx.fillStyle=t;ctx.fillRect(G.camX-VW/2-60,G.camY-VH/2-60,VW+120,VH+120)};
+const REW=[['relic','A relic: choose a technique'],['silver','+80 Silber'],['core','A soul core: +3% arrow damage'],['heal','Restore 40% of your spirit'],['item','A piece of equipment']];
+function openDoors(){const pool=[1,2,3,4,5].filter(i=>i!==G.zk),ch=[];while(ch.length<2)ch.push(pool.splice(Math.random()*pool.length|0,1)[0]);
+  const box=$('doorCards');box.innerHTML='';ch.forEach((zi,i)=>{const z=ZDEF[zi],rw=pick(REW),b=document.createElement('button');b.className='card';b.id='door'+i;
+    b.innerHTML=`<span class="n">${i+1}</span><i>${z.s}</i><b>${z.n}</b><span>${z.d}</span><span style="color:var(--gold)">On entry: ${rw[1]}</span>`;
+    b.onclick=()=>{G.zk=zi;G.zv=z.zv;G.drained=new Map();setState('play');banner(z.n.toUpperCase(),z.s);calcStats();
+      if(rw[0]==='silver')G.silver+=80;else if(rw[0]==='core')takeCore({core:'essence'});else if(rw[0]==='heal')G.hp=Math.min(G.maxhp,G.hp+G.maxhp*.4);else if(rw[0]==='item')dropItem(G.px+50,G.py,1);else{G.pendLv++;G.relic=true;openLevel()}};box.appendChild(b)});
+  setState('doors')}
+addEventListener('keydown',e=>{if(G.state==='doors'&&(e.key==='1'||e.key==='2')){const b=$('door'+(+e.key-1));if(b)b.click()}});
+bossPick=function(){return G.bossN===0?pick(['kol','arr']):G.bossN===1?pick(['turm','esp']):G.bossN===2?'vasto':pick(['arr','esp','kol','turm','vasto'])};
+
+/* ---------- trials ---------- */
+const give={silver:n=>{meta.silver+=n;meta.xp+=n},pts:n=>{meta.bonusPts+=n},sch:id=>{if(!meta.unlocked.includes(id))meta.unlocked.push(id)},item:r=>{if(meta.bag.length<30)meta.bag.push(rollItem(6,r))}};
+const TRIALS=[
+ {id:'bow',n:'The string',d:'Purify 25 hollows in one night.',ok:()=>G.kills>=25,r:'60 Silber',g:()=>give.silver(60)},
+ {id:'mask',n:'Through the mask',d:'Break 30 masks in one night.',ok:()=>G.maskN>=30,r:'Inheritance: The Heat',g:()=>give.sch('H')},
+ {id:'kol',n:'Large things',d:'Fell a great hollow.',ok:()=>G.bossN>=1,r:'Inheritance: The Explode · 100 Silber',g:()=>{give.sch('E');give.silver(100)}},
+ {id:'tree',n:'Drink the desert',d:'Drain 6 quartz trees in one night.',ok:()=>G.treesN>=6,r:'1 tree point',g:()=>give.pts(1)},
+ {id:'stolz',n:'A standard',d:'Reach Stolz IV.',ok:()=>tierS()>=4,r:'Inheritance: The Wind',g:()=>give.sch('W')},
+ {id:'rift',n:'Close the door',d:'Seal 3 Garganta in one night.',ok:()=>G.riftN>=3,r:'A Heilig piece of equipment',g:()=>give.item(2)},
+ {id:'turm',n:'Taller things',d:'Fell two great hollows in one night.',ok:()=>G.bossN>=2,r:'Inheritance: The Thunderbolt · 150 Silber',g:()=>{give.sch('T');give.silver(150)}},
+ {id:'clean',n:'Untouched',d:'Fell a great hollow without being struck while it lives.',ok:()=>G.cleanBoss,r:'Inheritance: The Iron · 1 tree point',g:()=>{give.sch('I');give.pts(1)}},
+ {id:'vasto',n:'The apex',d:'Fell the Vasto Lorde.',ok:()=>G.won,r:'Inheritance: The X-Axis · 300 Silber',g:()=>{give.sch('X');give.silver(300)}},
+ {id:'glove',n:'The glove',d:'Complete a hunt on Jagdstufe II.',ok:()=>G.won&&G.stufe>=2,r:'2 tree points',g:()=>give.pts(2)},
+ {id:'vater',n:'The last lesson',d:'Stand against him.',ok:()=>!!meta.trueEnd,r:'3 tree points',g:()=>give.pts(3)},
+ {id:'pages',n:'His handwriting',d:'Find every page of your grandfather’s journal.',ok:()=>meta.pages>=10,r:'A Sternritter piece of equipment',g:()=>give.item(3)},
+ {id:'book',n:'A complete Jagdbuch',d:'Bring 12 entries to their second chapter.',ok:()=>Object.keys(JRN).filter(k=>jtier(k)>=2).length>=12,r:'3 tree points',g:()=>give.pts(3)},
+ {id:'stufe5',n:'Sanrei',d:'Complete a hunt on Jagdstufe V.',ok:()=>G.won&&G.stufe>=5,r:'1000 Silber',g:()=>give.silver(1000)}];
+for(const s of SCHRIFT)if(s.unlock){const t=TRIALS.find(t=>t.r.includes(s.name));s.unlock=['trial',Infinity,'trial “'+(t?t.n:'?')+'”']}
+function checkTrials(){for(const t of TRIALS){if(meta.tr[t.id])continue;let ok=false;try{ok=t.ok()}catch(e){}if(ok){meta.tr[t.id]=1;t.g();saveMeta();if(G.state==='play'){G.tips.push([G.t+.5,'PRÜFUNG BESTANDEN · '+t.n+' · '+t.r]);if(A.ctx)A.levelup()}}}}
+const nextTrial=()=>TRIALS.find(t=>!meta.tr[t.id]);
+const _tp10=treePts;treePts=function(){return _tp10()+(meta.bonusPts||0)};
+TABS.splice(1,0,['trials','Prüfungen']);
+function hubTrials(el){checkTrials();const done=TRIALS.filter(t=>meta.tr[t.id]).length;el.innerHTML=`<p class="lede">Die Prüfungen. He never says them aloud, but he is keeping a list. ${done} of ${TRIALS.length} passed.</p><div class="grid3">`+
+  TRIALS.map(t=>`<div class="pan${meta.tr[t.id]?'':' '}" style="${meta.tr[t.id]?'border-color:var(--gold)':''}"><i style="${meta.tr[t.id]?'color:var(--gold)':''}">${meta.tr[t.id]?'Passed':'Open'}</i><b>${t.n}</b><span>${t.d}</span><span style="color:var(--gold)">${t.r}</span></div>`).join('')+`</div>`}
+
+/* ---------- the people of the outpost ---------- */
+const NPCS=[
+ {id:'hilde',name:'Hilde',role:'Schmiedin · the forge',lines:[
+  ['So you’re his. You’ve got the frown already. Bring me anything silver you find out there and I’ll make it worth carrying.'],
+  ['Your father brought back one cross in thirty years. One. Says the rest weren’t worth my time. He’s right, but he could lie a little.'],
+  ['Schlicht work is practice metal. Salvage it. A bow should embarrass you until you’ve earned it.'],
+  ['I had two arms when I came here. Don’t look at it. The Rammbock that took it is in my Jagdbuch, page one, and nowhere else. Here. For arrows.',()=>give.silver(80),'80 Silber'],
+  ['A Sternritter piece hums. You’ll know. If it doesn’t hum, somebody lied to you. Possibly me.'],
+  ['He stood right where you’re standing, your age, shaking like a wet dog after his first night. Don’t tell him I said so. No. Tell him. I want to see his face.'],
+  ['Reforging is arguing with the metal until one of you gives up. I don’t give up. Take this one; I won the argument.',()=>give.item(2),'a Heilig piece'],
+  ['You don’t need me to tell you it’s good work. It is, though. Go on.']]},
+ {id:'konrad',name:'Konrad',role:'Archivar · the archive',lines:[
+  ['Ah. The grandchild. He said you would come eventually. Your grandfather, I mean. Your father says very little, and none of it to me.'],
+  ['The Jagdbuch is not a trophy shelf. It is an apology. We destroy what we kill, soul and all. The least we can do is write down that it existed.'],
+  ['Your grandfather drew every hollow he met. Badly. His Gillian has six legs. I have left it in.'],
+  ['Reishi is not ours. Remember that when the bow starts to feel like part of your arm. It is a loan from the sand.',()=>give.pts(1),'1 tree point'],
+  ['He walked out there a hundred nights and came back kinder each time. I never understood how. Your father came back quieter. That, I understood.'],
+  ['If you find pages in the desert, on the ones who did not come home, bring them to me. He had a habit of leaving them where they would be needed.'],
+  ['Your father reads those pages when he thinks the archive is empty. I am old. I am not deaf.',()=>give.pts(1),'1 tree point'],
+  ['I have nothing left to teach that the sand will not teach better. Sit a while anyway.']]},
+ {id:'ilse',name:'Ilse',role:'Späherin · the watchtower',lines:[
+  ['New one. Try not to die in sight of the tower. It’s bad for morale. Mine, specifically.'],
+  ['Tip from up here: they walk toward noise. The volley is loud. Do the sums.'],
+  ['When five of the small ones bunch up, shoot the bunch. I’ve watched what happens when you don’t.'],
+  ['The lulls are real. Twelve breaths, give or take. Drink a tree, pick your ground. And take this, I don’t spend it up here.',()=>give.silver(60),'60 Silber'],
+  ['The big Menos’ beam turns one way and keeps turning. Run with it. Everyone runs away from it. Everyone is wrong.'],
+  ['There were others. The bodies you find with kit on them came through that Garganta the same as you. Somebody’s father left them here too.'],
+  ['I counted your arrows last night. Then I stopped counting. That’s a compliment.'],
+  ['The tower’s yours if you ever want to sit somewhere high and quiet. You’ve earned the ladder.']]}];
+const npcNew=n=>(meta.npc[n.id]||0)<n.lines.length&&(meta.npcAt[n.id]===undefined||meta.npcAt[n.id]<meta.st.hunts);
+const _hb10=hubBase;hubBase=function(el){_hb10(el);const d=document.createElement('div');d.style.width='100%';d.style.order=-1;
+  d.innerHTML=`<div class="grid3">`+NPCS.map(n=>{const c=meta.npc[n.id]||0,nw=npcNew(n),l=c?n.lines[c-1]:null;return`<div class="pan"><i>${n.role}</i><b>${n.name}</b><span>${l?'“'+l[0]+'”':'You have not spoken yet.'}</span>${l&&l[2]?`<span style="color:var(--gold)">She gave you ${n.id==='konrad'?'':''}${l[2]}.</span>`.replace('She',n.id==='konrad'?'He':'She'):''}<button class="ghost talk" data-n="${n.id}" ${nw?'':'disabled'}>${nw?'Speak':c>=n.lines.length?'Nothing more to say':'After your next hunt'}</button></div>`}).join('')+`</div>`;
+  el.insertBefore(d,el.children[1]||null);
+  d.querySelectorAll('.talk').forEach(b=>b.onclick=()=>{const n=NPCS.find(x=>x.id===b.dataset.n);if(!npcNew(n))return;const l=n.lines[meta.npc[n.id]||0];meta.npc[n.id]=(meta.npc[n.id]||0)+1;meta.npcAt[n.id]=meta.st.hunts;if(l[1])l[1]();saveMeta();renderHub()})};
+
+/* ---------- grandfather's pages ---------- */
+const PAGES=[
+ 'First night. The sand is not sand. I put my hand in it and it tried to become a hand. Remarkable. Terrifying. I must bring the boy.',
+ 'They come to the bow, not to me. If I lower it they lose interest by degrees. Note for later: stillness is armour.',
+ 'Drew a Gillian today. It would not hold still. Gave it six legs to be safe.',
+ 'The trees drink back if you let them. I sat under one all through a lull and felt less alone than I have in the city.',
+ 'Brought the boy. He is nine and furious that the desert will not obey him. It will. He does not yet know that this is the frightening part.',
+ 'A hollow was a person. I say this to the boy each night. He says, “Then why do we destroy them?” I have not found an answer I am not ashamed of.',
+ 'I was careless. A great hollow, a bad step, my leg. The boy held the dune alone for three nights while I could not stand. He was eleven. He has not smiled at a bow since.',
+ 'He is a better archer than I ever was, and he hates it. If he ever has a child he will bring them here, and he will be hard on them, and it will be my fault.',
+ 'To whoever finds these: he is not cold. He is counting. He counts every arrow you loose and every step you take, because he once had to count for three nights, and still believes he came up short.',
+ 'For my grandchild, if there is one. Shoot well. Lower the bow sometimes. And when he says nothing at the Garganta, understand that he is saying it as loudly as he can.'];
+function foundCache(){if(meta.pages<PAGES.length){meta.pages++;saveMeta();banner('A PAGE, IN AN OLD HAND','Folded inside the coat. Page '+meta.pages+' of '+PAGES.length+'. Read it at the Outpost.')}}
+const _hl10=hubLetters;hubLetters=function(el){_hl10(el);const d=document.createElement('div');d.style.width='100%';d.innerHTML=`<div class="eyebrow" style="margin:10px 0">Grandfather’s journal · ${meta.pages} of ${PAGES.length} pages</div>`+(meta.pages?`<div class="grid3">`+PAGES.slice(0,meta.pages).map((p,i)=>`<div class="pan"><i style="color:var(--gold)">Page ${i+1}</i><span style="font-style:italic;color:var(--bone)">${p}</span></div>`).join('')+`</div>`:'<div class="pan"><span>None yet. The fallen Quincy you find in the desert sometimes carry one.</span></div>');el.appendChild(d)};
+
+/* ---------- wiring ---------- */
+const _ng10=newGame;newGame=function(){_ng10();Object.assign(G,{zk:0,zv:0,maskN:0,treesN:0,riftN:0,bossHit:0,cleanBoss:0,trT:0});calcStats()};
+const _cs10=calcStats;calcStats=function(){_cs10();S.luck+=zmod('luck')};
+const _os10=onSpawn;onSpawn=function(e){_os10(e);const h=zmod('hp');if(h!==1&&!e.boss){e.hp*=h;e.mhp=e.hp}if(e.boss)G.bossHit=0};
+const _ok10=onKill;onKill=function(e,src){_ok10(e,src);if(e.type==='rift')G.riftN++;if(e.boss&&!G.bossHit)G.cleanBoss=1;const sm=zmod('silver');if(sm!==1)G.silver+=(sm-1)*e.sc/300};
+const _oh10=onHurt;onHurt=function(){_oh10();if(G.boss)G.bossHit=1};
+const _ah10=arrowHit;arrowHit=function(e,a,mask){if(mask&&a.kind===0)G.maskN++;_ah10(e,a,mask)};
+const _od10=onDeath;onDeath=function(){checkTrials();_od10()};
+const _su10=sysUpdate;sysUpdate=function(dt){_su10(dt);if(G.state==='win'||G.state==='play'){if((G.trT+=dt)>1||G.state==='win'){G.trT=0;checkTrials()}}if(G.state==='play'&&zmod('storm'))G.storm=Math.max(G.storm,1.5)};
+$('winGo').onclick=()=>openDoors();
+const _sb10=showBest;showBest=function(){_sb10();const t=nextTrial();$('trialLine').textContent=t?'Next trial · '+t.n+' · '+t.d:'Every trial is passed.';const n=NPCS.filter(npcNew).length;if(n&&!$('outpost').textContent.includes('letter'))$('outpost').textContent='The Outpost · '+n+' waiting'};
+drawSchrift();newGame();showBest();requestAnimationFrame(frame);
 </script>
