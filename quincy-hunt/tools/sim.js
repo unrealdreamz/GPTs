@@ -47,7 +47,7 @@ const out=await p.evaluate(async({RUNS,MAXT,SKILL})=>{
    if(G.t>=nextMin){M.kAt.push({m:nextMin/60,k:G.kills,lvl:G.lvl,hp:G.hp|0,e:G.enemies.length,zone:G.zone});nextMin+=60}
   }
   res.push({t:G.t|0,state:G.state,kills:G.kills,lvl:G.lvl,zone:G.zone,bossN:G.bossN,hits:M.hits,perfRate:+(M.perf/Math.max(1,M.full)).toFixed(2),fulls:M.full,volPct:+(M.volT/(M.volT+M.chgT)).toFixed(2),starvePct:+(M.starve/(G.t*60)).toFixed(2),lullPct:+(M.lull/(G.t*60)).toFixed(2),
-    lvTimes:M.lv.slice(0,14).join(','),perMin:M.kAt.map(a=>`${a.m}m:k${a.k}/L${a.lvl}/hp${a.hp}/e${a.e}`).join(' '),silver:Math.floor((G.silver+G.t/3)),win:M.win,bossT:G.bossT|0,bossAlive:!!G.boss,up:Object.keys(G.up).length});
+    lvTimes:M.lv.slice(0,14).join(','),perMin:M.kAt.map(a=>`${a.m}m:k${a.k}/L${a.lvl}/hp${a.hp}/e${a.e}`).join(' '),silver:Math.floor((G.silver+G.t/3)),win:M.win,bossT:G.bossT|0,bossAlive:!!G.boss,tro:JSON.stringify(G.tro),up:Object.keys(G.up).length});
  }
  return res},{RUNS,MAXT,SKILL});
 for(const r of out)console.log(JSON.stringify(r));
